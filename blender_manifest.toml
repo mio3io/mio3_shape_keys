@@ -8,6 +8,5 @@ type = "add-on"
 tags = ["Mesh", "Modeling"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
-website = "https://github.com/mio3io"
+website = "https://github.com/mio3io/mio3_shape_keys"
 copyright = ["2025 Mio"]
-
