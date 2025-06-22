@@ -1,0 +1,12 @@
+schema_version = "1.0.0"
+id = "mio3_shape_keys"
+name = "Mio3 Shape Keys"
+version = "2.5.5"
+tagline = "ShapeKey Tools"
+maintainer = "Mio"
+type = "add-on"
+tags = ["Mesh", "Modeling"]
+blender_version_min = "4.2.0"
+license = ["SPDX:GPL-3.0-or-later"]
+website = "https://github.com/mio3io"
+copyright = ["2025 Mio"]
