@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "name": "Mio3 Shape Keys Extend Data",
+    "rules": [
+        { "name": "ウィンク", "type": "-X", "source": [{ "name": "笑い", "value": 1.0 }] },
+        { "name": "ウィンク２", "type": "-X", "source": [{ "name": "まばたき", "value": 1.0 }] },
+        { "name": "ウィンク右", "type": "+X", "source": [{ "name": "笑い", "value": 1.0 }] },
+        { "name": "ｳｨﾝｸ２右", "type": "+X", "source": [{ "name": "まばたき", "value": 1.0 }] }
+    ]
+}
