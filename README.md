@@ -1,15 +1,21 @@
-# Mio3 ShapeKey
+# Mio3 Shape Keys
 
 キャラクターモデリングに特化したシェイプキー補助ツールセットです。
-メイン機能として複数のオブエジェクトのシェイプキーを同期して操作できるようにします。
 
-## 入手方法
+## Ver3
 
-最新版は [Code > Download ZIP](https://github.com/mio3io/Mio3Shapekey/archive/master.zip) または Dev ブランチから ZIP ファイルをダウンロードしてください。
+現在 Mio3 Shape Keys Ver3 を開発中です。
+Ver3β は https://addon.mio3io.com/ からインストールできます。
 
-## 機能
+[Mio3 Shape Keys Ver3 Documentation (WIP)](https://addon.mio3io.com/#/ja/mio3shapekeys/)
 
-![](https://github.com/mio3io/resources/raw/Mio3ShapekeySync/Mio3ShapekeySync2022-12-19%20060612.png)
+English translation progress...40%
+
+
+## Ver2
+
+Ver2 は [releases](https://github.com/mio3io/mio3_shape_keys/releases) からダウンロードできます。
+
 
 ### 同期コレクション
 
@@ -44,11 +50,6 @@
 - 単体・複数のシェイプキーの移動を補助
 - X ミラー編集の自動選択・解除
 
-## 導入方法
-
-Blender の `Edit > Preferences > Addons > Install` を開き、ダウンロードしたアドオンの ZIP ファイルを選択してインストールボタンを押します。
-インストール後、該当するアドオンの左側についているチェックボックスを ON にします。
-
 ## 使い方
 
 シェイプキーを使用できるオブジェクトを選択するとサイドバーの Tool およびアクティブツールに「Mio3 ShapeKey」とい項目が表示されます。
@@ -56,6 +57,3 @@ Blender の `Edit > Preferences > Addons > Install` を開き、ダウンロー�
 コレクションに含まれるオブジェクトのシェイプキーが同期します。
 コレクションに自分自身が含まれてても問題ありません。
 
-#### ToDo
-
-作者自身アバターモデラーのため、実際に制作中にあると良いなと思った機能を色々実装しております。将来的に多言語化も予定します。
