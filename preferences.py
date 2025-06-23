@@ -1,7 +1,8 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
 from .ui import ui_side
+from .utils.ext_data import refresh_ext_data
 
 
 def update_panel(self, context):
@@ -20,6 +21,9 @@ def update_panel(self, context):
 
 class MIO3SK_Preferences(AddonPreferences):
     bl_idname = __package__
+
+    def callback_use_group_prefix(self, context):
+        refresh_ext_data(context.object)
 
     category: StringProperty(name="Tab", default="Mio3", update=update_panel)
 
@@ -40,19 +44,21 @@ class MIO3SK_Preferences(AddonPreferences):
         default=True,
     )
     group_prefix: StringProperty(
-        name="Group Prefix",
-        default="===",
+        name="Custom Group Prefix",
+        default="---",
+        update=callback_use_group_prefix,
     )
-    use_group_prefix: BoolProperty(
+    use_group_prefix: EnumProperty(
         name="Use Prefix",
-        default=True,
+        items=[
+            ("NONE", "None", "No prefix will be used"),
+            ("AUTO", "Auto", "'---' または '===' でグループ化"),
+            ("CUSTOM", "Custom", "Use a custom prefix for grouping shape keys"),
+        ],
+        default="AUTO",
         description="Automatically group shape keys that have a specific prefix in their names",
+        update=callback_use_group_prefix,
     )
-    # assign_tags_then_deselect: BoolProperty(
-    #     name="Assign Tags then Deselect",
-    #     default=True,
-    #     description="Assign tags to the selected shape keys and then deselect them",
-    # )
 
     def draw(self, context):
         layout = self.layout

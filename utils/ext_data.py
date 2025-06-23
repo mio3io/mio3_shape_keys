@@ -105,9 +105,11 @@ def refresh_ext_data(obj: Object, added=False, removed=False):
                 item.name = name
 
     # 拡張データのタグの更新
+    prefix = ("---", "===") if prefs.use_group_prefix == "AUTO" else prefs.group_prefix
     for ext in prop_o.ext_data:
-        if prefs.use_group_prefix:
-            ext["is_group"] = ext.name.startswith(prefs.group_prefix)
+        if prefs.use_group_prefix != "NONE":
+            ext["is_group"] = ext.name.startswith(prefix)
+
         for i in range(len(ext.tags) - 1, -1, -1):
             if ext.tags[i].name not in prop_o.tag_list:
                 ext.tags.remove(i)
@@ -118,12 +120,13 @@ def rename_ext_data(obj: Object, old_name, new_name):
     # debug_function("  🍊rename_ext_data <{}> {} -> {}", [obj.name, old_name, new_name])
     prefs = get_preferences()
 
+    prefix = ("---", "===") if prefs.use_group_prefix == "AUTO" else prefs.group_prefix
     for ext in obj.mio3sk.ext_data:
         # ext自体を更新
         if ext.name == old_name:
             ext.name = new_name
-            if prefs.use_group_prefix:
-                ext["is_group"] = new_name.startswith(prefs.group_prefix)
+            if prefs.use_group_prefix != "NONE":
+                ext["is_group"] = new_name.startswith(prefix)
             ext["is_group_close"] = False
 
         # コンポジションのソースになってる名前を更新

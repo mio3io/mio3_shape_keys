@@ -37,6 +37,15 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
         sub = split.column()
         sub.prop(prefs, "use_auto_x_mirror")
 
+        split = layout.split(factor=0.35)
+        split.alignment = "RIGHT"
+        split.label(text="Grouping")
+        col = split.column()
+        col.row(align=True).prop(prefs, "use_group_prefix", expand=True)
+        sub = col.column()
+        sub.enabled = prefs.use_group_prefix == "CUSTOM"
+        sub.prop(prefs, "group_prefix", text="Prefix")
+
         layout.separator()
 
         layout.operator("object.mio3sk_transfer_settings")
