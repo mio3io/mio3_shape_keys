@@ -94,6 +94,9 @@ class MIO3SK_MT_select_keys_edit(Menu):
 
         layout = self.layout
         layout.operator("object.mio3sk_select_all", icon="CHECKMARK").all = True
+        layout.operator("object.mio3sk_select_invert", icon_value=icons.invert)
+        layout.separator()
+
         layout.operator("object.mio3sk_select_all_unused", icon="CHECKMARK")
         layout.operator("object.mio3sk_select_all_by_verts", icon="CHECKMARK")
         layout.operator("object.mio3sk_select_all_asymmetry", icon="CHECKMARK")

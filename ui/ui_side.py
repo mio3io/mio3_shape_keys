@@ -26,7 +26,7 @@ class MIO3SK_PT_side_main(Mio3SKSidePanel):
         row.operator("mesh.mio3sk_smooth_shape", text="Smooth", icon_value=icons.smooth)
 
         row = col.row(align=True)
-        row.operator("mesh.mio3sk_invert", text="Invert", icon_value=icons.invert)
+        row.operator("mesh.mio3sk_invert", text="Invert", icon_value=icons.delta_invert)
         row.operator("mesh.mio3sk_mirror", text="Mirror", icon_value=icons.mirror)
         row = col.row(align=True)
         row.operator("mesh.mio3sk_clean", text="Clean", icon="MOD_FLUIDSIM")

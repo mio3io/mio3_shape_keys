@@ -30,6 +30,7 @@ icon_names = [
     "smooth",
     "mirror",
     "invert",
+    "delta_invert",
     "sort",
     "join_key",
     "refresh",
@@ -37,7 +38,6 @@ icon_names = [
     "auto_on",
     "filter_reset",
     "preset",
-
 ]
 
 class IconSet:

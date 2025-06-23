@@ -372,6 +372,20 @@ class OBJECT_OT_mio3sk_select_all_error(MIO3SKSelectKeysBase):
         return {"FINISHED"}
 
 
+class OBJECT_OT_mio3sk_select_invert(MIO3SKSelectKeysBase):
+    bl_idname = "object.mio3sk_select_invert"
+    bl_label = "選択を反転"
+    bl_description = "選択されているシェイプキーの選択を反転します"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def execute(self, context):
+        obj = context.active_object
+        for ext in obj.mio3sk.ext_data:
+            ext["select"] = not ext.select
+        refresh_filter_flag(context, obj)
+        return {"FINISHED"}
+
+
 classes = [
     OBJECT_OT_mio3sk_select_all_unused,
     OBJECT_OT_mio3sk_select_all_by_verts,
@@ -380,6 +394,7 @@ classes = [
     OBJECT_OT_mio3sk_deselect_all,
     OBJECT_OT_mio3sk_select_group_toggle,
     OBJECT_OT_mio3sk_select_all_error,
+    OBJECT_OT_mio3sk_select_invert,
 ]
 
 
