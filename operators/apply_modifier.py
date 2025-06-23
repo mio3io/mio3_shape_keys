@@ -166,6 +166,7 @@ class MIO3SK_OT_modifier_apply(Mio3SKOperator):
         if error:
             self.report({"WARNING"}, "一部のシェイプキーが統合できませんでした。Ctrl+Zで元に戻せます。選択キー→「エラー要因のキーを選択」でエラーになるキーを確認できます。")
         else:
+            self.report({"INFO"}, "モディフィアを適用しました")
             print("Time: {:.5f}".format(time.time() - start_time))
 
         return {"FINISHED"}
