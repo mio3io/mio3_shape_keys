@@ -27,7 +27,8 @@ class MIO3SK_Preferences(AddonPreferences):
     bl_idname = __package__
 
     def callback_use_group_prefix(self, context):
-        refresh_ext_data(context.object)
+        for obj in bpy.data.objects:
+            refresh_ext_data(obj)
 
     category: StringProperty(name="Tab", default="Mio3", update=update_panel)
 
