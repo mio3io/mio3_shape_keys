@@ -380,7 +380,10 @@ class OBJECT_OT_mio3sk_select_invert(MIO3SKSelectKeysBase):
 
     def execute(self, context):
         obj = context.active_object
+        basis_kb = obj.data.shape_keys.reference_key
         for ext in obj.mio3sk.ext_data:
+            if ext.name == basis_kb.name:
+                continue
             ext["select"] = not ext.select
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
