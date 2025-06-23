@@ -54,7 +54,7 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
                 kb.value = 0.0
 
         new_kb = obj.shape_key_add(name="__tmp__", from_mix=True)
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
 
         data_range = range(len(obj.data.vertices))
         for i in data_range:
@@ -66,7 +66,7 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
                     kb.value = 0.0
                 if self.joined == "CLEAR":
                     for i in data_range:
-                        kb.data[i].co = basis.data[i].co.copy()
+                        kb.data[i].co = basis_kb.data[i].co.copy()
                 if self.joined == "REMOVE":
                     obj.shape_key_remove(kb)
 

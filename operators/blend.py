@@ -99,7 +99,7 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
                 pass
             return {"FINISHED"}
 
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
 
         bm = bmesh.from_edit_mesh(obj.data)
         bm.verts.ensure_lookup_table()
@@ -109,7 +109,7 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
             selected_verts.update(find_x_mirror_verts(bm, selected_verts))
         selected_verts_indices = [v.index for v in selected_verts]
 
-        basis_co = np.array([basis.data[i].co for i in selected_verts_indices])
+        basis_co = np.array([basis_kb.data[i].co for i in selected_verts_indices])
         source_co = np.array([blend_source.data[i].co for i in selected_verts_indices])
         target_co = np.array([v.co for v in selected_verts])
 

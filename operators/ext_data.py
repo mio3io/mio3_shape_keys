@@ -228,11 +228,11 @@ class OBJECT_OT_mio3sk_keyframe(Mio3SKOperator):
         obj = context.active_object
         prop_o = obj.mio3sk
         key_blocks = obj.data.shape_keys.key_blocks
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         ext_data = prop_o.ext_data
 
         for ext in ext_data:
-            if ext.name == basis.name or ext.name not in key_blocks:
+            if ext.name == basis_kb.name or ext.name not in key_blocks:
                 continue
             if self.method == "SELECTED" and not ext.select:
                 continue

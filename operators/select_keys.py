@@ -47,14 +47,14 @@ class OBJECT_OT_mio3sk_select_all_unused(MIO3SKSelectKeysBase):
         obj = context.active_object
         me = obj.data
         key_blocks = obj.data.shape_keys.key_blocks
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
 
         clear_filter(obj)
 
         v_len = len(me.vertices)
 
         basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis.data.foreach_get("co", basis_co_raw)
+        basis_kb.data.foreach_get("co", basis_co_raw)
         basis_co = basis_co_raw.reshape(-1, 3)
 
         select_keys = set()
@@ -190,7 +190,7 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
         self.start_time()
         obj = context.active_object
         key_blocks = obj.data.shape_keys.key_blocks
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
 
         clear_filter(obj)
 
@@ -203,7 +203,7 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
                 return {"CANCELLED"}
 
         basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis.data.foreach_get("co", basis_co_raw)
+        basis_kb.data.foreach_get("co", basis_co_raw)
         basis_co = basis_co_raw.reshape(-1, 3)
 
         kd = kdtree.KDTree(v_len)
@@ -273,9 +273,9 @@ class OBJECT_OT_mio3sk_select_all(MIO3SKSelectKeysBase):
 
     def execute(self, context):
         obj = context.active_object
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         for ext in obj.mio3sk.ext_data:
-            if (self.all or not ext.filter_flag) and ext.name != basis.name:
+            if (self.all or not ext.filter_flag) and ext.name != basis_kb.name:
                 ext["select"] = True
             else:
                 ext["select"] = False

@@ -74,7 +74,7 @@ class MIO3SK_OT_modifier_apply(Mio3SKOperator):
             return {"FINISHED"}
 
         key_blocks = obj.data.shape_keys.key_blocks
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         show_only_shape_key = obj.show_only_shape_key
         if show_only_shape_key:
             obj.show_only_shape_key = False
@@ -84,7 +84,7 @@ class MIO3SK_OT_modifier_apply(Mio3SKOperator):
         # 使用していないキー
         v_len = len(obj.data.vertices)
         basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis.data.foreach_get("co", basis_co_raw)
+        basis_kb.data.foreach_get("co", basis_co_raw)
         basis_co = basis_co_raw.reshape(-1, 3)
         unused = set()
         for kb in key_blocks[1:]:

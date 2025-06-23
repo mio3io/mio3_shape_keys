@@ -37,16 +37,16 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
         if obj.use_mesh_mirror_x:
             selected_verts.update(find_x_mirror_verts(bm, selected_verts))
 
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         # シェイプキーがない、または reference_key が存在する場合はラプラシアンを実行
-        if not obj.data.shape_keys or basis == obj.active_shape_key:
+        if not obj.data.shape_keys or basis_kb == obj.active_shape_key:
             self.mode = "LAPLACIAN"
             self.smooth_laplacian(obj, bm)
         else:
             self.mode = "SHAPE_KEY"
             active_kb = obj.active_shape_key
 
-            basis_layer = bm.verts.layers.shape.get(basis.name)
+            basis_layer = bm.verts.layers.shape.get(basis_kb.name)
             shape_layer = bm.verts.layers.shape.get(active_kb.name)
 
             self.smooth_shape_key(obj, bm, selected_verts, basis_layer, shape_layer)

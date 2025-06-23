@@ -43,9 +43,9 @@ class MESH_OT_mio3sk_reset(Mio3SKOperator):
                     active_kb.data[i].co = point.co.copy()
         else:
             if obj.mode == "EDIT":
-                basis = obj.data.shape_keys.reference_key
+                basis_kb = obj.data.shape_keys.reference_key
                 try:
-                    bpy.ops.mesh.blend_from_shape(shape=basis.name, blend=1, add=False)
+                    bpy.ops.mesh.blend_from_shape(shape=basis_kb.name, blend=1, add=False)
                 except Exception as e:
                     self.report({"ERROR"}, str(e))
             elif not active_kb.lock_shape:

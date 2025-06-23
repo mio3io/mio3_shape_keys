@@ -172,7 +172,7 @@ def refresh_filter_flag(context: Context, obj: Object):
     if not has_shape_key(obj):
         return None
     shape_keys = obj.data.shape_keys
-    basis = shape_keys.reference_key
+    basis_kb = shape_keys.reference_key
     prop_o = obj.mio3sk
     prop_w = context.window_manager.mio3sk
 
@@ -196,7 +196,7 @@ def refresh_filter_flag(context: Context, obj: Object):
                 ext.filter_flag = True
 
     for ext in prop_o.ext_data:
-        if ext.name == basis.name or ext.filter_flag:
+        if ext.name == basis_kb.name or ext.filter_flag:
             continue
 
         # 選択フィルター

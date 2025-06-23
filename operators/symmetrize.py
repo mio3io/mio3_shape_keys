@@ -38,10 +38,10 @@ class MESH_OT_mio3sk_symmetrize(Mio3SKOperator):
             return {"CANCELLED"}
 
         is_edit = obj.mode == "EDIT"
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         active_kb = obj.active_shape_key
 
-        if active_kb == basis:
+        if active_kb == basis_kb:
             return {"CANCELLED"}
 
         if obj. type == "LATTICE":
@@ -53,7 +53,7 @@ class MESH_OT_mio3sk_symmetrize(Mio3SKOperator):
 
         bm = bmesh.from_edit_mesh(obj.data)
         bm.verts.ensure_lookup_table()
-        basis_layer = bm.verts.layers.shape.get(basis.name)
+        basis_layer = bm.verts.layers.shape.get(basis_kb.name)
         active_layer = bm.verts.layers.shape.get(active_kb.name)
         if not basis_layer or not active_layer:
             return {"CANCELLED"}

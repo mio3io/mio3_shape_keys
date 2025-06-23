@@ -52,9 +52,9 @@ class MESH_OT_mio3sk_clean(Mio3SKOperator):
         bm = bmesh.from_edit_mesh(obj.data)
         bm.verts.ensure_lookup_table()
 
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         basis_co = np.empty(v_len * 3, dtype=np.float32)
-        basis.data.foreach_get("co", basis_co)
+        basis_kb.data.foreach_get("co", basis_co)
         basis_xyz = basis_co.reshape(-1, 3)
 
         shape_co = np.array([v.co for v in bm.verts])
@@ -118,20 +118,20 @@ class OBJECT_OT_mio3sk_clean_selected(Mio3SKOperator):
         if not is_local_obj(obj) or not valid_shape_key(obj):
             return {"CANCELLED"}
 
-        basis = obj.data.shape_keys.reference_key
+        basis_kb = obj.data.shape_keys.reference_key
         key_blocks = obj.data.shape_keys.key_blocks
         v_len = len(obj.data.vertices)
 
         selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
 
         basis_co = np.empty(v_len * 3, dtype=np.float32)
-        basis.data.foreach_get("co", basis_co)
+        basis_kb.data.foreach_get("co", basis_co)
         basis_xyz = basis_co.reshape(-1, 3)
 
         threshold = self.threshold
         active_index = obj.active_shape_key_index
         for kb in key_blocks:
-            if kb.name not in selected_names or kb == basis:
+            if kb.name not in selected_names or kb == basis_kb:
                 continue
             obj.active_shape_key_index = key_blocks.find(kb.name)
             
