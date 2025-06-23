@@ -5,18 +5,22 @@ from .ui import ui_side
 from .utils.ext_data import refresh_ext_data
 
 
+def reregister_panel_class(cls, category):
+    if hasattr(cls, "bl_category"):
+        cls.bl_category = category
+        is_exist = hasattr(bpy.types, cls.__name__)
+        if is_exist:
+            try:
+                bpy.utils.unregister_class(cls)
+            except:
+                pass
+        bpy.utils.register_class(cls)
+
+
 def update_panel(self, context):
-    is_exist = hasattr(bpy.types, "MIO3SK_PT_side_main")
-    category = bpy.context.preferences.addons[__package__].preferences.category
-
-    if is_exist:
-        try:
-            bpy.utils.unregister_class(ui_side.MIO3SK_PT_side_main)
-        except:
-            pass
-
-    ui_side.MIO3SK_PT_side_main.bl_category = category
-    bpy.utils.register_class(ui_side.MIO3SK_PT_side_main)
+    reregister_panel_class(ui_side.MIO3SK_PT_side_main, self.category)
+    reregister_panel_class(ui_side.MIO3SK_PT_sub_blend, self.category)
+    reregister_panel_class(ui_side.MIO3SK_PT_sub_delta_repair, self.category)
 
 
 class MIO3SK_Preferences(AddonPreferences):
@@ -91,22 +95,15 @@ class MIO3SK_Preferences(AddonPreferences):
         split = layout.split(factor=0.35)
         split.alignment = "RIGHT"
         split.label(text="Grouping")
-        row = split.row()
-        row.prop(prefs, "use_group_prefix")
-        sub = row.column()
-        sub.enabled = prefs.use_group_prefix
-        sub.prop(prefs, "group_prefix", text="")
+        col = split.column()
+        col.row(align=True).prop(prefs, "use_group_prefix", expand=True)
+        sub = col.column()
+        sub.enabled = prefs.use_group_prefix == "CUSTOM"
+        sub.prop(prefs, "group_prefix", text="Prefix")
 
 
 def register():
     bpy.utils.register_class(MIO3SK_Preferences)
-    prefs = bpy.context.preferences.addons[__package__].preferences
-    if prefs:
-        panel_class_category_map = [
-            (ui_side.MIO3SK_PT_side_main, prefs.category),
-        ]
-        for cls, category in panel_class_category_map:
-            cls.bl_category = category
 
 
 def unregister():

@@ -1,8 +1,8 @@
 import bpy
 from ..classes.operator import Mio3SKSidePanel
-from ..utils.utils import is_obj, is_allow_type, has_shape_key
+from ..utils.utils import is_obj, has_shape_key
 from ..icons import icons
-from ..globals import ICON_OPEN, ICON_CLOSE
+from ..globals import ICON_OPEN, ICON_CLOSE, get_preferences
 
 
 class MIO3SK_PT_side_main(Mio3SKSidePanel):
@@ -39,6 +39,7 @@ class MIO3SK_PT_side_main(Mio3SKSidePanel):
         row = col.row(align=True)
         row.operator("mesh.mio3sk_select_moved", text="使用頂点", icon="RESTRICT_SELECT_OFF")
         row.operator("mesh.mio3sk_select_asymmetry", text="非対称の頂点", icon="RESTRICT_SELECT_OFF")
+
 
 class MIO3SK_PT_sub_blend(Mio3SKSidePanel):
     bl_label = "Blend"
@@ -98,10 +99,12 @@ classes = [
 
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    prefs = get_preferences()
+    for cls in classes:
+        cls.bl_category = prefs.category
+        bpy.utils.register_class(cls)
 
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
