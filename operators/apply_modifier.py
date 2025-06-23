@@ -17,7 +17,7 @@ class MIO3SK_OT_modifier_apply(Mio3SKOperator):
     bl_idname = "object.mio3sk_modifier_apply"
     bl_label = "Apply Modifier"
     bl_description = "Apply Modifier"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {"REGISTER", "UNDO_GROUPED"}
 
     cancel_mirror_merge: BoolProperty(
         default=False,
