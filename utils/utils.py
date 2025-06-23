@@ -18,7 +18,11 @@ def is_local_obj(obj):
 
 
 def has_shape_key(obj):
-    return obj.type in {"MESH", "CURVE", "LATTICE"} and obj.data.shape_keys is not None
+    return (
+        obj.type in {"MESH", "CURVE", "LATTICE"}
+        and obj.data.shape_keys is not None
+        and obj.data.shape_keys.key_blocks is not None
+    )
 
 
 def valid_shape_key(obj):
