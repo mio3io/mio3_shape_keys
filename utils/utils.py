@@ -21,7 +21,7 @@ def has_shape_key(obj):
     return (
         obj.type in {"MESH", "CURVE", "LATTICE"}
         and obj.data.shape_keys is not None
-        and obj.data.shape_keys.key_blocks is not None
+        and 0 <= obj.active_shape_key_index
     )
 
 
