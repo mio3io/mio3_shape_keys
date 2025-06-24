@@ -257,8 +257,9 @@ def get_key_groups(obj: Object) -> list[list[ShapeKey]]:
     return groups
 
 
-def clear_filter(obj: Object):
+def clear_filter(context:Context, obj: Object):
     prop_o = obj.mio3sk
+    prop_w = context.window_manager.mio3sk
 
     for ext in prop_o.ext_data:
         ext["is_group_close"] = False  # グループ開閉
@@ -268,6 +269,8 @@ def clear_filter(obj: Object):
 
     obj.mio3sk["filter_name"] = ""  # 文字検索
     obj.mio3sk["is_group_global_close"] = False  # グループ全体開閉
+    prop_w.tag_filter_type = "OR"  # タグフィルタータイプ
+    prop_w.tag_filter_invert = False  # タグフィルター反転
 
 
 def find_current_tag(ext, tag_list):

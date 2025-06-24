@@ -232,7 +232,7 @@ class OBJECT_PG_mio3sk(PropertyGroup):
     selected_len: IntProperty(name="Selected Length", default=0)
     composer_global_enabled: BoolProperty(name="Use Composer Rules", default=False)
     is_group_global_close: BoolProperty(
-        name="すべて開くまたは閉じる（===でグループ化）", default=False, update=callback_is_group_global_close
+        name="すべて開くまたは閉じる（任意のプレフィックスでグループ化）", default=False, update=callback_is_group_global_close
     )
     # フィルター
     is_global_select: BoolProperty(name="すべて選択または解除", default=False, update=callback_is_global_select)

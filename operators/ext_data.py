@@ -153,7 +153,7 @@ class OBJECT_OT_mio3sk_clear_filter(Mio3SKOperator):
         obj = context.active_object
         if not has_shape_key(obj):
             return {"CANCELLED"}
-        clear_filter(obj)
+        clear_filter(context, obj)
 
         prop_o = obj.mio3sk
         # for ext in prop_o.ext_data:

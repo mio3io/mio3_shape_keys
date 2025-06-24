@@ -49,7 +49,7 @@ class OBJECT_OT_mio3sk_select_all_unused(MIO3SKSelectKeysBase):
         key_blocks = obj.data.shape_keys.key_blocks
         basis_kb = obj.data.shape_keys.reference_key
 
-        clear_filter(obj)
+        clear_filter(context, obj)
 
         v_len = len(me.vertices)
 
@@ -116,7 +116,7 @@ class OBJECT_OT_mio3sk_select_all_by_verts(MIO3SKSelectKeysBase):
         obj = context.active_object
         key_blocks = obj.data.shape_keys.key_blocks
 
-        clear_filter(obj)
+        clear_filter(context, obj)
 
         bm = bmesh.from_edit_mesh(obj.data)
         bm.verts.ensure_lookup_table()
@@ -192,7 +192,7 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
         key_blocks = obj.data.shape_keys.key_blocks
         basis_kb = obj.data.shape_keys.reference_key
 
-        clear_filter(obj)
+        clear_filter(context, obj)
 
         v_len = len(obj.data.vertices)
 
@@ -346,7 +346,7 @@ class OBJECT_OT_mio3sk_select_all_error(MIO3SKSelectKeysBase):
         show_only_shape_key = obj.show_only_shape_key
         obj.show_only_shape_key = False
 
-        clear_filter(obj)
+        clear_filter(context, obj)
 
         key_blocks = obj.data.shape_keys.key_blocks
         key_blocks.foreach_set("value", [0.0] * len(key_blocks))
