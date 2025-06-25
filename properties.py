@@ -14,6 +14,7 @@ from .icons import icons
 from .utils.utils import has_shape_key
 from .utils.ext_data import refresh_filter_flag, refresh_ui_info
 from .globals import TAG_COLOR_DEFAULT, LABEL_COLOR_DEFAULT
+from .subscribe import callback_show_only_shape_key
 
 
 # 比較用プロパティ
@@ -209,6 +210,9 @@ class OBJECT_PG_mio3sk(PropertyGroup):
     def callback_filter_name(self, context):
         refresh_filter_flag(context, context.object)
 
+    def callback_syncs(self, context):
+        callback_show_only_shape_key()
+
     store_names: CollectionProperty(
         name="Shape Key Names",
         type=OBJECT_PG_mio3sk_key,
@@ -219,7 +223,7 @@ class OBJECT_PG_mio3sk(PropertyGroup):
     )
 
     # 機能の使用
-    syncs: PointerProperty(name="Collection Sync", type=Collection)
+    syncs: PointerProperty(name="Collection Sync", type=Collection, update=callback_syncs)
     use_tags: BoolProperty(name="Use Tags", default=False)
     use_preset: BoolProperty(name="Use Preset", default=False)
     use_composer: BoolProperty(name="Use Composer", default=False)
@@ -264,7 +268,6 @@ class WM_PG_mio3sk_string(PropertyGroup):
 
 # シーン
 class SCENE_PG_mio3sk(PropertyGroup):
-
     def refresh_panel_factor(self, context):
         panel_factor = 0.63
         if not self.show_lock:
