@@ -138,10 +138,7 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         refresh_ui_info(context.object)
 
     def callback_is_group_close(self, context):
-        obj = context.object
-        index = obj.data.shape_keys.key_blocks.find(self.name)
-        obj.active_shape_key_index = index
-        refresh_filter_flag(context, obj)
+        refresh_filter_flag(context, context.object)
 
     select: BoolProperty(
         name="Select\n[Ctrl] Group Select",
@@ -307,7 +304,6 @@ class WM_PG_mio3sk(PropertyGroup):
         if self.tag_manage:
             obj = context.object
             if obj is not None:
-
                 for tag in obj.mio3sk.tag_list:
                     tag.active = False
 
