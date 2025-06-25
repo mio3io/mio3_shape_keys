@@ -185,8 +185,8 @@ class MIO3SK_PT_main(Mio3SKPanel):
         side_col.separator()
         side_col.operator("object.mio3sk_move", icon="TRIA_UP", text="").type = "UP"
         side_col.operator("object.mio3sk_move", icon="TRIA_DOWN", text="").type = "DOWN"
-        side_col.separator()
-        side_col.menu("MIO3SK_MT_move", icon="DOWNARROW_HLT", text="")
+        # side_col.separator()
+        # side_col.menu("MIO3SK_MT_move", icon="DOWNARROW_HLT", text="")
         side_col.separator()
         side_col.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
 

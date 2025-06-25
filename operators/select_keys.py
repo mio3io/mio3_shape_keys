@@ -161,11 +161,11 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
         # unit="LENGTH",
     )
 
-    exclude_hide: BoolProperty(
-        name="非表示の頂点を除外", description="非対称前提の頂点などを非表示にしてチェックする", default=False
-    )
     exclude_asymmetry_names: BoolProperty(
         name="非対称の名前のキーを除外", description="非対称前提の要素として除外する", default=True
+    )
+    exclude_hide: BoolProperty(
+        name="非表示の頂点を除外", description="非対称前提の頂点などを非表示にしてチェックする", default=False
     )
     exclude_suffix = [
         "_L", "_R", "_l", "_r", ".L", ".R", ".l", ".r", "-L", "-R", "-l", "-r",
@@ -175,13 +175,10 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
     def draw(self, context):
         layout = self.layout
         split = layout.split(factor=0.3)
-        split.label(text="Threshold")
-        split.prop(self, "threshold", text="")
-        split = layout.split(factor=0.3)
         split.label(text="")
         col = split.column()
-        col.prop(self, "exclude_hide")
         col.prop(self, "exclude_asymmetry_names")
+        col.prop(self, "exclude_hide")
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(self)

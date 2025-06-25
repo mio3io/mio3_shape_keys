@@ -42,9 +42,6 @@ class MIO3SK_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # layout.operator("object.mio3sk_add_below", icon="PLUS")
-        # layout.separator()
-
         layout.operator("object.mio3sk_duplicate", icon_value=icons.duplicate)
         layout.operator("object.mio3sk_extract_selected", icon_value=icons.duplicate)
         layout.separator()
@@ -57,12 +54,7 @@ class MIO3SK_MT_add(Menu):
         # layout.separator()
         # layout.operator("object.mio3sk_fill_keys")
 
-
-class MIO3SK_MT_move(Menu):
-    bl_label = "Move"
-
-    def draw(self, context):
-        layout = self.layout
+        layout.separator()
         layout.operator("object.mio3sk_move_below", icon="TRIA_DOWN")
         layout.separator()
         layout.operator("object.mio3sk_move", icon="TRIA_UP_BAR", text="Move to Top").type = "TOP"
@@ -230,7 +222,6 @@ classes = [
     MIO3SK_MT_main,
     MIO3SK_MT_add_preset,
     MIO3SK_MT_add,
-    MIO3SK_MT_move,
     MIO3SK_MT_select_keys_edit,
     MIO3SK_PT_options_popover,
     MIO3SK_MT_tag_settings,

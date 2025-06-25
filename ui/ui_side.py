@@ -24,21 +24,24 @@ class MIO3SK_PT_side_main(Mio3SKSidePanel):
         row = col.row(align=True)
         row.operator("mesh.mio3sk_reset", text="Reset", icon_value=icons.eraser)
         row.operator("mesh.mio3sk_smooth_shape", text="Smooth", icon_value=icons.smooth)
+        col.separator()
 
         row = col.row(align=True)
         row.operator("mesh.mio3sk_invert", text="Invert", icon_value=icons.delta_invert)
         row.operator("mesh.mio3sk_mirror", text="Mirror", icon_value=icons.mirror)
         row = col.row(align=True)
-        row.operator("mesh.mio3sk_clean", text="Clean", icon="MOD_FLUIDSIM")
+        row.operator("mesh.mio3sk_select_asymmetry", text="非対称の頂点", icon="RESTRICT_SELECT_OFF")
         row.operator("mesh.mio3sk_symmetrize", text="Symmetrize", icon_value=icons.symmetrize)
+        row = col.row(align=True)
+        row.operator("mesh.mio3sk_select_moved", text="使用頂点", icon="RESTRICT_SELECT_OFF")
+        row.operator("mesh.mio3sk_clean", text="Clean", icon="MOD_FLUIDSIM")
+        col.separator()
         row = col.row(align=True)
         row.operator("mesh.mio3sk_copy", text="Copy", icon="COPYDOWN")
         row.operator("mesh.mio3sk_paste", text="Paste", icon="PASTEDOWN")
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("mesh.mio3sk_select_moved", text="使用頂点", icon="RESTRICT_SELECT_OFF")
-        row.operator("mesh.mio3sk_select_asymmetry", text="非対称の頂点", icon="RESTRICT_SELECT_OFF")
 
 
 class MIO3SK_PT_sub_blend(Mio3SKSidePanel):
