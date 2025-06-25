@@ -4,7 +4,7 @@ from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, valid_shape_key
 
 
-class MIO3SK_OT_generate_mesh(Mio3SKOperator):
+class OBJECT_OT_mio3sk_generate_mesh(Mio3SKOperator):
     bl_idname = "object.mio3sk_generate_mesh"
     bl_label = "選択したキーをオブジェクト化"
     bl_description = "選択したキーの形状で別オブジェクトを作成する"
@@ -72,8 +72,8 @@ class MIO3SK_OT_generate_mesh(Mio3SKOperator):
 
 
 def register():
-    bpy.utils.register_class(MIO3SK_OT_generate_mesh)
+    bpy.utils.register_class(OBJECT_OT_mio3sk_generate_mesh)
 
 
 def unregister():
-    bpy.utils.unregister_class(MIO3SK_OT_generate_mesh)
+    bpy.utils.unregister_class(OBJECT_OT_mio3sk_generate_mesh)

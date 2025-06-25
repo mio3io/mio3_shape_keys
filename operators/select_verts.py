@@ -74,7 +74,7 @@ class MESH_OT_mio3sk_select_moved(Mio3SKOperator):
         return {"FINISHED"}
 
 
-class MIO3SK_OT_select_asymmetry(Mio3SKOperator):
+class MESH_OT_mio3sk_select_asymmetry(Mio3SKOperator):
     bl_idname = "mesh.mio3sk_select_asymmetry"
     bl_label = "非対称の頂点を選択"
     bl_description = "非対称の頂点を選択します"
@@ -167,7 +167,7 @@ class MIO3SK_OT_select_asymmetry(Mio3SKOperator):
         return {"FINISHED"}
 
 
-classes = [MESH_OT_mio3sk_select_moved, MIO3SK_OT_select_asymmetry]
+classes = [MESH_OT_mio3sk_select_moved, MESH_OT_mio3sk_select_asymmetry]
 
 
 def add_custom_menu_item(self, context):

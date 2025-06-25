@@ -9,11 +9,11 @@ from ..classes.operator import Mio3SKOperator
 
 # EXCLUDE_MODIFIERS = {"DECIMATE", "WELD", "EDGE_SPLIT", "REMESH"}
 
-class MIO3SK_PG_check_modifier(PropertyGroup):
+class OBJECT_PG_mio3sk_check_modifier(PropertyGroup):
     selected: BoolProperty(name="Selected", default=False)
 
 
-class MIO3SK_OT_modifier_apply(Mio3SKOperator):
+class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
     bl_idname = "object.mio3sk_modifier_apply"
     bl_label = "Apply Modifier"
     bl_description = "Apply Modifier"
@@ -25,7 +25,7 @@ class MIO3SK_OT_modifier_apply(Mio3SKOperator):
         description="頂点数が変わる場合ミラーモディフィアのマージオプションはオフにしてください。",
     )
 
-    apply_modifiers: CollectionProperty(type=MIO3SK_PG_check_modifier)
+    apply_modifiers: CollectionProperty(type=OBJECT_PG_mio3sk_check_modifier)
     has_shape_keys: BoolProperty(options={"HIDDEN"}, default=False)
 
     @classmethod
@@ -198,8 +198,8 @@ class MIO3SK_OT_modifier_apply(Mio3SKOperator):
 
 
 classes = [
-    MIO3SK_PG_check_modifier,
-    MIO3SK_OT_modifier_apply,
+    OBJECT_PG_mio3sk_check_modifier,
+    OBJECT_OT_mio3sk_modifier_apply,
 ]
 
 def object_menu_item(self, context):

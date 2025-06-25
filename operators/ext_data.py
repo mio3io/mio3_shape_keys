@@ -316,7 +316,7 @@ class OBJECT_OT_mio3sk_props_conv(Mio3SKGlobalOperator):
         return {"FINISHED"}
 
 
-# class MIO3SK_OT_props_conv_v3(Mio3SKGlobalOperator):
+# class OBJECT_OT_mio3sk_props_conv_v3(Mio3SKGlobalOperator):
 #     bl_idname = "object.mio3sk_props_conv_v3"
 #     bl_label = "Conv"
 #     bl_description = "Conv"

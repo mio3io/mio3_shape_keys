@@ -2,12 +2,11 @@ import bpy
 from ..classes.operator import Mio3SKSidePanel
 from ..utils.utils import is_obj, has_shape_key
 from ..icons import icons
-from ..globals import ICON_OPEN, ICON_CLOSE, get_preferences
+from ..globals import get_preferences
 
 
 class MIO3SK_PT_side_main(Mio3SKSidePanel):
     bl_label = "Mio3 Shape Keys"
-    bl_idname = "MIO3SK_PT_side_main"
 
     @classmethod
     def poll(cls, context):

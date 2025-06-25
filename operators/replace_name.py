@@ -6,7 +6,7 @@ from ..classes.operator import Mio3SKOperator
 from ..utils.ext_data import rename_ext_data
 
 
-class MIO3SK_OT_replace(Mio3SKOperator):
+class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
     bl_idname = "object.mio3sk_replace"
     bl_label = "Batch Rename"
     bl_description = "Batch Rename"
@@ -90,8 +90,8 @@ class MIO3SK_OT_replace(Mio3SKOperator):
 
 
 def register():
-    bpy.utils.register_class(MIO3SK_OT_replace)
+    bpy.utils.register_class(OBJECT_OT_mio3sk_replace)
 
 
 def unregister():
-    bpy.utils.unregister_class(MIO3SK_OT_replace)
+    bpy.utils.unregister_class(OBJECT_OT_mio3sk_replace)
