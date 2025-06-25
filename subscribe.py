@@ -1,10 +1,10 @@
 import bpy
+from bpy.types import Object
 from bpy.app.handlers import persistent
 from .globals import get_preferences
 from .utils import debug_function
-from .utils.utils import is_obj, is_local_obj, has_shape_key, is_sync_collection
+from .utils.utils import is_obj, is_local_obj, is_local, has_shape_key, is_sync_collection
 from .utils.ext_data import check_update, refresh_ext_data, refresh_filter_flag, rename_ext_data
-from .utils.sync import sync_active_shapekey
 from .utils.mirror import get_mirror_name
 import time
 
@@ -14,10 +14,7 @@ def callback_mode():
     obj = context.active_object
 
     # コンポジションの自動適用
-    if obj is not None and obj.mode == "OBJECT":
-        if not is_obj(obj) or not has_shape_key(obj):
-            return
-
+    if is_obj(obj) and obj.mode == "OBJECT" and has_shape_key(obj):
         prop_s = context.scene.mio3sk
         if obj.mio3sk.composer_global_enabled and prop_s.composer_auto:
             if not prop_s.composer_auto_skip:
@@ -31,7 +28,7 @@ def callback_active_shape_key_index():
     context = bpy.context
     obj = context.object
 
-    if not is_obj(obj) or not obj.active_shape_key:
+    if not is_obj(obj) or not has_shape_key(obj):
         return
 
     prefs = get_preferences()
@@ -43,7 +40,6 @@ def callback_active_shape_key_index():
 
     # 選択ヒストリーの更新
     temp_history = [h.name for h in prop_w.select_history]
-    # 選択キーが変わった
     if active_kb_name in temp_history:
         temp_history.remove(active_kb_name)
     temp_history.insert(0, active_kb_name)
@@ -57,7 +53,14 @@ def callback_active_shape_key_index():
 
     # アクティブシェイプキーの同期
     if prefs.use_sync_active_shapekey and is_sync_collection(obj):
-        sync_active_shapekey(obj, prop_o.syncs.objects, active_kb_name)
+        for sync_obj in prop_o.syncs.objects:
+            sync_obj: Object
+            if sync_obj != obj and has_shape_key(sync_obj):
+                index = sync_obj.data.shape_keys.key_blocks.find(active_kb_name)
+                if index > -1:
+                    sync_obj.active_shape_key_index = index
+                else:
+                    sync_obj.active_shape_key_index = 0
 
     # コンポジションルールの自動適用
     if obj.mode == "EDIT":
@@ -66,7 +69,6 @@ def callback_active_shape_key_index():
             if not prop_s.composer_auto_skip:
                 bpy.ops.object.mio3sk_composer_apply("EXEC_DEFAULT", dependence=True)
         prop_s.composer_auto_skip = False
-    
 
     # debug_function("🍭 {:.5f} callback_active_shape_key_index", time.time() - start_time)
 
@@ -160,17 +162,14 @@ def callback_name():
 def init_addon():
     debug_function("Mio3 ShapeKeys: Init Addon")
     context = bpy.context
-    try:
-        for obj in bpy.data.objects:
-            if obj.library is not None or obj.override_library:
-                continue
-            if has_shape_key(obj):
-                key_blocks = obj.data.shape_keys.key_blocks
+    for obj in bpy.data.objects:
+        try:
+            if is_local(obj) and has_shape_key(obj):
                 check_update(context, obj)
                 refresh_ext_data(obj, True, True)
                 refresh_filter_flag(context, obj)
-    except:
-        pass
+        except:
+            pass
 
 
 msgbus_owner = object()

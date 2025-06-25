@@ -3,6 +3,7 @@ from bpy.types import AddonPreferences
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from .ui import ui_side
 from .utils.ext_data import refresh_ext_data
+from .utils.utils import has_shape_key
 
 
 def reregister_panel_class(cls, category):
@@ -28,7 +29,8 @@ class MIO3SK_Preferences(AddonPreferences):
 
     def callback_use_group_prefix(self, context):
         for obj in bpy.data.objects:
-            refresh_ext_data(obj)
+            if has_shape_key(obj):
+                refresh_ext_data(obj)
 
     category: StringProperty(name="Tab", default="Mio3", update=update_panel)
 
