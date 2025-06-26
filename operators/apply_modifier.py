@@ -76,8 +76,7 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         key_blocks = obj.data.shape_keys.key_blocks
         basis_kb = obj.data.shape_keys.reference_key
         show_only_shape_key = obj.show_only_shape_key
-        if show_only_shape_key:
-            obj.show_only_shape_key = False
+        obj.show_only_shape_key = False
 
         key_blocks.foreach_set("value", [0.0] * len(key_blocks))
 
@@ -101,9 +100,10 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         modifiers_to_keep = set(selected_modifiers)
 
         # ミラーモディファイアのマージを外す
-        for mod in obj.modifiers:
-            if mod.name in modifiers_to_keep and self.cancel_mirror_merge and mod.type == "MIRROR":
-                mod.use_mirror_merge = False
+        if self.cancel_mirror_merge:
+            for mod in obj.modifiers:
+                if mod.name in modifiers_to_keep and mod.type == "MIRROR":
+                    mod.use_mirror_merge = False
 
         # 複製用オブジェクト
         copy_obj = obj.copy()
@@ -160,8 +160,7 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         for mod in obj.modifiers:
             if mod.name in modifier_states:
                 mod.show_viewport = modifier_states[mod.name]
-        if show_only_shape_key:
-            obj.show_only_shape_key = True
+        obj.show_only_shape_key = show_only_shape_key
 
         if error:
             self.report({"WARNING"}, "一部のシェイプキーが統合できませんでした。Ctrl+Zで元に戻せます。選択キー→「エラー要因のキーを選択」でエラーになるキーを確認できます。")
