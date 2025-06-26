@@ -176,10 +176,11 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     import_shape_keys: BoolProperty(name="Shape Keys", default=False)
+    import_shape_keys_target: EnumProperty(name="Target", items=[("ALL", "All", ""), ("SELECTED", "Selected", "")])
     import_presets: BoolProperty(name="Preset Settings", default=False)
     import_tag_settings: BoolProperty(name="Tag Settings", default=False)
     import_tags: BoolProperty(name="Tag Assign", default=False)
-    import_composer_rules: BoolProperty(name="Composition Rules", default=False)
+    import_composer_rules: BoolProperty(name="Composer Rules", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -210,6 +211,9 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
         if self.import_shape_keys:
             for keyname in source_obj.data.shape_keys.key_blocks.keys():
                 if keyname not in key_blocks:
+                    if self.import_shape_keys_target == "SELECTED":
+                        if not base_prop_o.ext_data.get(keyname) or not base_prop_o.ext_data[keyname].select:
+                            continue
                     obj.shape_key_add(name=keyname, from_mix=False)
             check_update(context, obj)
 
@@ -275,18 +279,26 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
         split.label(text="Base")
         split.prop(context.window_manager.mio3sk, "import_source", text="")
 
-        split = layout.split(factor=0.4)
-        split.alignment = "RIGHT"
-        split.label(text="インポートする情報")
-        row2 = split.column(align=True)
-        row2.prop(self, "import_shape_keys")
-        row2.prop(self, "import_presets")
-        row2.prop(self, "import_tag_settings")
-        row2.prop(self, "import_tags")
-        row2.prop(self, "import_composer_rules")
+        layout.label(text="インポートする情報")
         box = layout.box()
-        box.alignment = "CENTER"
-        box.label(text="シェイプ形状は転送されません", icon="ERROR")
+
+        split = box.split(factor=0.4)
+        split.prop(self, "import_shape_keys")
+        row = split.row(align=True)
+        row.enabled = self.import_shape_keys
+        row.prop(self, "import_shape_keys_target", expand=True)
+        split = box.split(factor=0.4)
+        split.label(text="")
+        split.label(text="形状は転送されません", icon="ERROR")
+
+        col = box.column(align=True)
+        col.separator(factor=0.5)
+        col.prop(self, "import_tag_settings")
+        col.prop(self, "import_tags")
+        col.separator(factor=0.5)
+        col.prop(self, "import_presets")
+        col.separator(factor=0.5)
+        col.prop(self, "import_composer_rules")
 
 
 class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
