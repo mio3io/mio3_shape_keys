@@ -87,6 +87,9 @@ class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
 
             kb.data.foreach_set("co", kb_xyz.ravel())
 
+            if kb == basis_kb:
+                obj.data.vertices.foreach_set("co", kb_xyz.ravel())
+
         obj.data.update()
         context.window_manager.mio3sk.apply_to_basis = shape_kb.name
 
