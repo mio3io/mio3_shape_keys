@@ -156,6 +156,8 @@ def refresh_ui_info(obj: Object):
             selected_len += 1
         if not ext.filter_flag:
             visible_len += 1
+        if ext.is_group:
+            ext.group_len = 0
     prop_o.visible_len = visible_len
     prop_o.selected_len = selected_len
 
@@ -257,7 +259,7 @@ def get_key_groups(obj: Object) -> list[list[ShapeKey]]:
     return groups
 
 
-def clear_filter(context:Context, obj: Object):
+def clear_filter(context: Context, obj: Object):
     prop_o = obj.mio3sk
     prop_w = context.window_manager.mio3sk
 
