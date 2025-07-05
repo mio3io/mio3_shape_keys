@@ -85,9 +85,12 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         options={"SKIP_SAVE"},
     )
     setup_rules: BoolProperty(
-        name="シェイプ同期ルールを作成", description="元データと継続的に同期するためのルールを作成します", default=True
+        name="シェイプ同期ルールを作成",
+        description="元データと継続的に同期するためのルールを作成します",
+        default=True,
+        options={"SKIP_SAVE"},
     )
-    remove_source: BoolProperty(name="元のシェイプキーを削除")
+    remove_source: BoolProperty(name="元のシェイプキーを削除", options={"SKIP_SAVE"})
 
     @classmethod
     def poll(cls, context):
@@ -100,9 +103,9 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
             return {"CANCELLED"}
 
         selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
-        selected_len = len(selected_names)
-        if not selected_len:
-            return self.execute(context)
+        # selected_len = len(selected_names)
+        # if not selected_len:
+        #     return self.execute(context)
 
         if selected_names and obj.active_shape_key.name in selected_names:
             self.mode = "SELECTED"
@@ -161,10 +164,15 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
             wm.progress_end()
 
         if self.remove_source:
-            for name in selected_names:
-                if kb := key_blocks.get(name):
-                    obj.shape_key_remove(kb)
-            obj.active_shape_key_index = len(key_blocks) - 1
+            if self.mode == "ACTIVE":
+                idx = key_blocks.find(active_kb.name)
+                obj.shape_key_remove(active_kb)
+                obj.active_shape_key_index = idx
+            else:
+                for name in selected_names:
+                    if kb := key_blocks.get(name):
+                        obj.shape_key_remove(kb)
+                obj.active_shape_key_index = len(key_blocks) - 1
         else:
             obj.active_shape_key_index = key_blocks.find(active_kb.name)
 

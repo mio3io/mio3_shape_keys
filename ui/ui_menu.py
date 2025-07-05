@@ -46,6 +46,7 @@ class MIO3SK_MT_add(Menu):
         layout.operator("object.mio3sk_extract_selected", icon_value=icons.duplicate)
         layout.separator()
         layout.operator("object.mio3sk_generate_lr", icon_value=icons.split)
+        layout.operator("object.mio3sk_generate_lr", text="左右のシェイプキーに分割", icon_value=icons.split).remove_source = True
         layout.operator("object.mio3sk_generate_opposite", icon_value=icons.face_mirror)
         # layout.operator("object.mio3sk_generate_from_lr", icon_value=icons.split)
 
