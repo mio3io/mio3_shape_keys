@@ -30,7 +30,9 @@ class MIO3SK_PT_main(Mio3SKPanel):
             for obj in prop_o.syncs.objects:
                 if has_shape_key(obj):
                     collection_keys.update(obj.data.shape_keys.key_blocks.keys())
-            layout.label(text="{} Keys / Global {} Keys".format(len(shape_keys.key_blocks) - 1, len(collection_keys) - 1))
+            layout.label(
+                text="{} Keys / Global {} Keys".format(len(shape_keys.key_blocks) - 1, len(collection_keys) - 1)
+            )
         else:
             layout.label(text="{} Keys".format(len(shape_keys.key_blocks) - 1))
 
@@ -190,7 +192,6 @@ class MIO3SK_PT_main(Mio3SKPanel):
         side_col.separator()
         side_col.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
 
-
     @staticmethod
     def layout_select_keys(list_foot, prop_o, selected_len):
         sub = list_foot.row(align=True)
@@ -284,7 +285,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
                     row = column.row(align=True)
                     column.separator(factor=0.2)
                 sub = row.row(align=True)
-                sub_color = sub.row(align=True) 
+                sub_color = sub.row(align=True)
                 sub_color.prop(tag, "color", icon="COLOR", icon_only=True)
                 sub_color.scale_x = 0.2
                 sub.operator("object.mio3sk_select_tag", translate=False, text=tag.name, depress=tag.active).tag = (
@@ -389,11 +390,11 @@ class MIO3SK_UL_shape_keys(UIList):
                 row_name.label(text="", icon_value=icons.default)
         else:
             row_name.label(text="", icon_value=icons.default)
-        
+
         row_name.prop(key_block, "name", text="", emboss=False)
 
         row = split.row(align=True)
-        sub = row.row()
+        sub = row.row(align=True)
         if prop_s.show_keyframe:
             sub.use_property_decorate = True
             sub.use_property_split = True
@@ -401,6 +402,7 @@ class MIO3SK_UL_shape_keys(UIList):
         if key_block.mute or (obj.mode == "EDIT" and not obj.use_shape_key_edit_mode):
             sub.active = False
 
+        # Value
         if index == 0:
             sub.label(text="")
         elif prop_s.hide_group_value and is_group:
@@ -408,15 +410,18 @@ class MIO3SK_UL_shape_keys(UIList):
             sub.label(text="{}".format(ext.group_len))
             sub.separator(factor=0.25)
         else:
-            if is_group:
-                sub.prop(key_block, "value", text="")
-            elif not key_block.id_data.use_relative:
+            sub.alignment = "RIGHT"
+            if not key_block.id_data.use_relative:
                 sub.prop(key_block, "frame", text="")
             else:
                 sub.prop(key_block, "value", text="")
+                sub.separator(factor=0.25)
+                # sub.operator("object.mio3sk_shape_key_toggle", text="", icon_value=icons.toggle, emboss=False).key = (
+                #     key_block.name
+                # )
 
-            row.separator()
-            
+            row.separator(factor=0.25)
+
             if prop_s.show_mute:
                 row.prop(key_block, "mute", text="", emboss=False)
             if prop_s.show_lock:

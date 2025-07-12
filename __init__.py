@@ -31,6 +31,7 @@ from .operators import apply_modifier
 from .operators import switch
 from .operators import genmesh
 
+from .operators import weight
 from .operators import select_verts
 from .operators import select_keys
 from .operators import tag
@@ -68,6 +69,7 @@ modules = [
     apply,
     switch,
     genmesh,
+    weight,
     select_verts,
     select_keys,
     apply_mask,

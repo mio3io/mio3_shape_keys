@@ -38,6 +38,7 @@ icon_names = [
     "auto_on",
     "filter_reset",
     "preset",
+    "toggle",
 ]
 
 class IconSet:
