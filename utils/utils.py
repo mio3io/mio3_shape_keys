@@ -66,3 +66,24 @@ def srgb2lnr(x):
 def is_close_color(col, target):
     """色が近似しているかどうかを判定する"""
     return abs(col.r - target[0]) < 0.0001 and abs(col.g - target[1]) < 0.0001 and abs(col.b - target[2]) < 0.0001
+
+
+
+def pad_text(text, target_width, fillchar=" "):
+    w = 0
+    for ch in text:
+        if ord(ch) >= 0x1100 and (
+            0x1100 <= ord(ch) <= 0x115F or
+            0x2E80 <= ord(ch) <= 0xA4CF or
+            0xAC00 <= ord(ch) <= 0xD7A3 or
+            0xF900 <= ord(ch) <= 0xFAFF or
+            0xFE10 <= ord(ch) <= 0xFE19 or
+            0xFE30 <= ord(ch) <= 0xFE6F or
+            0xFF00 <= ord(ch) <= 0xFF60 or
+            0xFFE0 <= ord(ch) <= 0xFFE6
+        ):
+            w += 2
+        else:
+            w += 1
+    pad = max(0, target_width - w)
+    return text + fillchar * pad

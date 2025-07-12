@@ -4,7 +4,7 @@ import bpy
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
-from ..utils.utils import has_shape_key, valid_shape_key
+from ..utils.utils import has_shape_key, valid_shape_key, pad_text
 from ..utils.ext_data import check_update, refresh_composer_info
 
 
@@ -312,6 +312,13 @@ class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
     print_no: BoolProperty(name="番号を出力", default=False)
     separator: EnumProperty(name="Separator", items=[("TAB", "Tab", ""), ("COMMA", "Comma", "")])
 
+    format: EnumProperty(
+        name="Format",
+        items=[("TEXT", "Text", ""), ("JSON", "Json", ""), ("CSV", "CSV", "")],
+        default="JSON",
+    )
+    pair_template: BoolProperty(name="ツール用テンプレート", default=False)
+
     @classmethod
     def poll(cls, context):
         obj = context.active_object
@@ -328,40 +335,73 @@ class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
         row = layout.row(align=True)
         row.prop(self, "source", expand=True)
 
-        layout.prop(self, "print_no")
-        row = layout.row(align=True)
-        row.prop(self, "separator", expand=True)
-        row.enabled = self.print_no
-        layout.prop(self, "escape")
+        layout.prop(self, "format")
+
+        if self.format == "CSV":
+            layout.prop(self, "print_no")
+            row = layout.row(align=True)
+            row.prop(self, "separator", expand=True)
+            row.enabled = self.print_no
+            layout.prop(self, "escape")
+        elif self.format == "JSON":
+            layout.prop(self, "pair_template")
 
     def execute(self, context):
         obj = context.active_object
         if obj is None or not has_shape_key(obj):
             return
+        
+        if len(obj.data.shape_keys.key_blocks) <= 1:
+            return {"CANCELLED"}
 
+        separator = "\t" if self.separator == "TAB" else ","
         key_blocks = obj.data.shape_keys.key_blocks
         lines = []
+        maxlen = max(len(kb.name) for kb in key_blocks[1:]) + 5
         for i, kb in enumerate(key_blocks[1:], start=1):
             ext = obj.mio3sk.ext_data.get(kb.name)
+            name = kb.name
             if ext and self.source == "GROUP" and not ext.is_group:
                 continue
-            if self.print_no:
-                no = i
-                separator = "\t" if self.separator == "TAB" else ","
-            else:
-                no = ""
-                separator = ""
 
-            lines.append("{}{sep}{}".format(no, kb.name, sep=separator))
+            if self.format == "JSON":
+                if self.pair_template:
+                    name = '"{}",'.format(name.replace('"', '\\"'))
+                    name = pad_text(name, maxlen)
+                    lines.append('    [{} ""]'.format(name))
+                else:
+                    lines.append('  "{}"'.format(name.replace('"', '\\"')))
+            elif self.format == "CSV":
+                if self.print_no:
+                    lines.append("{}{sep}{}{sep}".format(i, name, sep=separator))
+                else:
+                    lines.append("{}".format(name))
+            else:
+                if self.print_no:
+                    lines.append("{}{sep}".format(i, name, sep=separator))
+                else:
+                    lines.append(name)
+        
+        if self.format == "JSON":
+            data = ",\n".join(lines)
+            if self.pair_template:
+                data = "{\n  \"CustomLabel\": [\n" + data + "\n  ]\n}"
+            else:
+                data = "[\n" + data + "\n]"
+
+        else:
+            data = "\n".join(lines)
 
         text_data = bpy.data.texts.new("ShapeKeyList.txt")
         text_data.clear()
-        text_data.write("\n".join(lines))
+        text_data.write(data)
         text_data.use_fake_user = False
 
         for area in context.screen.areas:
             if area.type == "TEXT_EDITOR":
-                area.spaces.active.text = text_data
+                space = area.spaces.active
+                space.text = text_data
+                space.top = 0
                 break
 
         return {"FINISHED"}
