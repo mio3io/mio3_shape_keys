@@ -130,7 +130,7 @@ class OBJECT_OT_mio3sk_clean_selected(Mio3SKOperator):
 
         threshold = self.threshold
         active_index = obj.active_shape_key_index
-        for kb in key_blocks:
+        for kb in key_blocks[1:]:
             if kb.name not in selected_names or kb == basis_kb:
                 continue
             obj.active_shape_key_index = key_blocks.find(kb.name)

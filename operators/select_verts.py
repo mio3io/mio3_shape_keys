@@ -21,6 +21,7 @@ class MESH_OT_mio3sk_select_moved(Mio3SKOperator):
         precision=4,
     )
     invert: BoolProperty(name="Invert", default=False)
+    add: BoolProperty(name="Add to Selection", options={"HIDDEN"}, default=False)
 
     @classmethod
     def poll(cls, context):
@@ -37,6 +38,9 @@ class MESH_OT_mio3sk_select_moved(Mio3SKOperator):
         active_kb = obj.active_shape_key
         if basis_kb == active_kb:
             return {"CANCELLED"}
+        
+        if event.shift:
+            self.add = True
 
         return self.execute(context)
 
@@ -57,16 +61,18 @@ class MESH_OT_mio3sk_select_moved(Mio3SKOperator):
         threshold = self.threshold
         if self.invert:
             for v in bm.verts:
-                basis_co = v[basis_layer]
-                current_co = v[active_layer]
-                delta = (basis_co - current_co).length
+                delta = (v[basis_layer] - v[active_layer]).length
                 v.select = not delta > threshold
         else:
-            for v in bm.verts:
-                basis_co = v[basis_layer]
-                current_co = v[active_layer]
-                delta = (basis_co - current_co).length
-                v.select = delta > threshold
+            if self.add:
+                for v in bm.verts:
+                    delta = (v[basis_layer] - v[active_layer]).length
+                    if delta > threshold:
+                        v.select = True
+            else:
+                for v in bm.verts:
+                    delta = (v[basis_layer] - v[active_layer]).length
+                    v.select = delta > threshold
 
         bm.select_flush_mode()
         bmesh.update_edit_mesh(obj.data)
