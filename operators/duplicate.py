@@ -387,6 +387,132 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
         return mirror_name
 
 
+class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
+    bl_idname = "object.mio3sk_merge_lr"
+    bl_label = "左右のシェイプキーを統合"
+    bl_description = "選択した_L、_Rシェイプキーを統合して新しいシェイプキーを作成します"
+    bl_options = {"REGISTER", "UNDO"}
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None and valid_shape_key(obj) and obj.mode == "OBJECT"
+
+    def execute(self, context):
+        self.start_time()
+
+        obj = context.active_object
+        if not is_local_obj(obj) or not valid_shape_key(obj):
+            return {"CANCELLED"}
+
+        key_blocks = obj.data.shape_keys.key_blocks
+        selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
+
+        if not selected_names:
+            self.report({"WARNING"}, "シェイプキーが選択されていません")
+            return {"CANCELLED"}
+
+        lr_pairs = self.find_lr_pairs_from_selection(selected_names)
+
+        if not lr_pairs:
+            self.report({"WARNING"}, "統合可能なL/Rペアが見つかりません")
+            return {"CANCELLED"}
+
+        created_pairs = []
+        for base_name, l_name, r_name in lr_pairs:
+            merged_kb = self.create_merged_shape_key(obj, key_blocks, base_name, l_name, r_name)
+            if merged_kb:
+                created_pairs.append((merged_kb.name, l_name, r_name))
+
+        for merged_name, l_name, r_name in created_pairs:
+            self.move_to_appropriate_position(obj, key_blocks, merged_name, l_name, r_name)
+
+        check_update(context, obj)
+        refresh_filter_flag(context, obj)
+        self.print_time()
+        return {"FINISHED"}
+
+    def find_lr_pairs_from_selection(self, selected_names):
+        """選択されたシェイプキーからL/Rペアを見つける"""
+        lr_pairs = []
+        processed = set()
+
+        for name in selected_names:
+            if name in processed:
+                continue
+
+            if name.endswith("_L"):
+                base_name = name[:-2]
+                r_name = base_name + "_R"
+                if r_name in selected_names:
+                    lr_pairs.append((base_name, name, r_name))
+                    processed.add(name)
+                    processed.add(r_name)
+            elif name.endswith("_R"):
+                base_name = name[:-2]
+                l_name = base_name + "_L"
+                if l_name in selected_names:
+                    lr_pairs.append((base_name, l_name, name))
+                    processed.add(l_name)
+                    processed.add(name)
+
+        return lr_pairs
+
+    def create_merged_shape_key(self, obj: Object, key_blocks, base_name, l_name, r_name):
+        """L/Rシェイプキーから統合シェイプキーを作成"""
+        l_kb = key_blocks.get(l_name)
+        r_kb = key_blocks.get(r_name)
+
+        if not l_kb or not r_kb:
+            return None
+
+        merged_kb = obj.shape_key_add(name=base_name, from_mix=False)
+
+        basis_key = obj.data.shape_keys.reference_key
+        v_len = len(obj.data.vertices)
+
+        basis_co = np.empty(v_len * 3, dtype=np.float32)
+        basis_key.data.foreach_get("co", basis_co)
+        basis_co = basis_co.reshape(-1, 3)
+
+        l_co = np.empty(v_len * 3, dtype=np.float32)
+        l_kb.data.foreach_get("co", l_co)
+        l_co = l_co.reshape(-1, 3)
+
+        r_co = np.empty(v_len * 3, dtype=np.float32)
+        r_kb.data.foreach_get("co", r_co)
+        r_co = r_co.reshape(-1, 3)
+
+        merged_co = basis_co.copy()
+        for i in range(v_len):
+            x = basis_co[i, 0]
+            if x > 0:
+                merged_co[i] = l_co[i]
+            elif x < 0:
+                merged_co[i] = r_co[i]
+            else:
+                l_delta = l_co[i] - basis_co[i]
+                r_delta = r_co[i] - basis_co[i]
+                merged_co[i] = basis_co[i] + (l_delta + r_delta)
+
+        merged_kb.data.foreach_set("co", merged_co.ravel())
+
+        refresh_ext_data(obj, added=True)
+
+        return merged_kb
+
+    def move_to_appropriate_position(self, obj, key_blocks, merged_name, l_name, r_name):
+        """統合シェイプキーを移動"""
+        merged_idx = key_blocks.find(merged_name)
+        if merged_idx == -1:
+            return
+
+        target_idx = min([idx for idx in [key_blocks.find(l_name), key_blocks.find(r_name)] if idx != -1])
+
+        if target_idx != -1:
+            move_shape_key_below(obj, target_idx - 1, merged_idx)
+
+
 class OBJECT_OT_mio3sk_extract_selected(Mio3SKOperator):
     bl_idname = "object.mio3sk_extract_selected"
     bl_label = "選択範囲からシェイプキーを作成"
@@ -427,8 +553,9 @@ class OBJECT_OT_mio3sk_extract_selected(Mio3SKOperator):
 classes = [
     OBJECT_OT_mio3sk_duplicate,
     OBJECT_OT_mio3sk_generate_lr,
-    OBJECT_OT_mio3sk_extract_selected,
     OBJECT_OT_mio3sk_generate_opposite,
+    OBJECT_OT_mio3sk_merge_lr,
+    OBJECT_OT_mio3sk_extract_selected,
 ]
 
 
