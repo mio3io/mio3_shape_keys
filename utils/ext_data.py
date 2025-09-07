@@ -59,17 +59,17 @@ def check_update(context: Context, obj: Object, sync=True, callback=None):
             if callback:
                 callback(context, obj, old_name, new_name)
 
-        # sync=Trueの場合は同期オブジェクトもチェック
-        if sync and prefs.use_sync_name and prop_o.syncs is not None:
-            sync_objects = {o for o in prop_o.syncs.objects if o != obj and is_local(o) and has_shape_key(o)}
-            for sync_obj in sync_objects:
-                for old_name, new_name in rename_keys:
-                    key_blocks = sync_obj.data.shape_keys.key_blocks
-                    if key_blocks and (sync_kb := key_blocks.get(old_name)):
-                        sync_kb.name = new_name
-                        rename_ext_data(sync_obj, old_name, new_name)
-                        if callback:
-                            callback(context, sync_obj, old_name, new_name)
+        # sync=Trueの場合は同期オブジェクトもチェック ＠バグ調べるため一旦コメントアウト
+        # if sync and prefs.use_sync_name and prop_o.syncs is not None:
+        #     sync_objects = {o for o in prop_o.syncs.objects if o != obj and is_local(o) and has_shape_key(o)}
+        #     for sync_obj in sync_objects:
+        #         for old_name, new_name in rename_keys:
+        #             key_blocks = sync_obj.data.shape_keys.key_blocks
+        #             if key_blocks and (sync_kb := key_blocks.get(old_name)):
+        #                 sync_kb.name = new_name
+        #                 rename_ext_data(sync_obj, old_name, new_name)
+        #                 if callback:
+        #                     callback(context, sync_obj, old_name, new_name)
 
     elif added_keys or removed_keys:
         if added_keys:
