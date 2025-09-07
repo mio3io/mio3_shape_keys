@@ -297,6 +297,14 @@ class OBJECT_OT_mio3sk_composer_apply(Mio3SKComposerEditOperator):
         key_blocks.foreach_set("value", [0.0] * len(key_blocks))
         key_blocks.foreach_set("mute", [True] * len(key_blocks))
 
+        # original_min = np.empty(len(key_blocks), dtype=np.float32)
+        # key_blocks.foreach_get("slider_min", original_min)
+        # key_blocks.foreach_set("slider_min", [-1.0] * len(key_blocks))
+        # key_blocks.foreach_set("value", [0.0] * len(key_blocks))
+        # original_mute = np.empty(len(key_blocks), dtype=bool)
+        # key_blocks.foreach_get("mute", original_mute)
+        # key_blocks.foreach_set("mute", [True] * len(key_blocks))
+
         v_len = len(obj.data.vertices)
         basis_kb = obj.data.shape_keys.reference_key
 
@@ -331,6 +339,8 @@ class OBJECT_OT_mio3sk_composer_apply(Mio3SKComposerEditOperator):
             count += 1
 
         # 状態を復元
+        # key_blocks.foreach_set("slider_min", original_min)
+        # key_blocks.foreach_set("mute", original_mute)
         self.restore_shape_key_states(key_blocks, original_states)
         obj.active_shape_key_index = key_blocks.find(active_kb.name)
         obj.show_only_shape_key = show_only_shape_key
