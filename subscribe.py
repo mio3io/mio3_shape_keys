@@ -70,6 +70,9 @@ def callback_active_shape_key_index():
                 bpy.ops.object.mio3sk_composer_apply("EXEC_DEFAULT", dependence=True)
         prop_s.composer_auto_skip = False
 
+    if prefs.use_auto_x_mirror:
+        obj.use_mesh_mirror_x = not active_kb_name.endswith(("_L", "_R", ".L", ".R"))
+
     # debug_function("🍭 {:.5f} callback_active_shape_key_index", time.time() - start_time)
 
 
