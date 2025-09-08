@@ -7,7 +7,7 @@ from ..utils.ext_data import get_key_groups, check_update, refresh_ext_data, ref
 
 class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
     bl_idname = "object.mio3sk_sort"
-    bl_label = "Sort"
+    bl_label = "Smart Sort"
     bl_description = "Sort by ShapeKey Name"
     bl_options = {"REGISTER", "UNDO"}
 

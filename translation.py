@@ -67,7 +67,7 @@ translation_dict = {
         ("Operator", "Duplicate Shape Key"): "シェイプキーを複製",
         ("Operator", "Remove Selected Shape Keys"): "選択したキーをすべて削除",
         ("Operator", "Move Shape Keys"): "シェイプキーを移動",
-        ("Operator", "Sort"):"ソート",
+        ("Operator", "Smart Sort"):"並び替え",
         ("Operator", "from presets"): "プリセットから追加",
         ("Operator", "Import CSV"): "CSVファイルから追加",
         ("*", "Import Shape Keys from CSV"): "CSVファイルのリストからシェイプキーを追加",
