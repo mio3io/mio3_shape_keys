@@ -22,6 +22,8 @@ icon_names = [
     "tag",
     "tag_active",
     "split",
+    "join",
+    "opposite",
     "edit",
     "duplicate",
     "switch",

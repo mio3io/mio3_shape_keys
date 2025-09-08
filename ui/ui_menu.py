@@ -13,15 +13,12 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.operator("object.mio3sk_apply_to_basis", icon_value=icons.apply_basis)
         layout.operator("object.mio3sk_switch_with_basis", icon_value=icons.switch)
         layout.separator()
-        layout.operator("object.mio3sk_join_keys", icon_value=icons.join_key)
         layout.operator("object.mio3sk_shape_key_add", text="New Shape from Mix", icon="ADD").from_mix = True
+        layout.operator("object.mio3sk_join_keys", icon_value=icons.join_key)
 
         layout.separator()
         layout.operator("object.mio3sk_shape_transfer", text="Join as Shapes", icon="FILE_NEW").method = "MESH"
         layout.operator("object.mio3sk_shape_transfer", text="Transfer Shape Key", icon="FILE_NEW").method = "KEY"
-        layout.separator()
-        layout.operator("object.mio3sk_shape_key_remove", text="Delete All Shape Keys", icon="X").mode = "ALL"
-        layout.operator("object.mio3sk_remove_apply_mix", text="Apply All Shape Keys", icon="X")
 
         layout.separator()
         layout.operator("object.mio3sk_replace")
@@ -42,19 +39,24 @@ class MIO3SK_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("object.mio3sk_shape_key_add", icon="ADD").sync = False
+        layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="シェイプキーの追加（コレクション）").sync = True
+        layout.separator()
         layout.operator("object.mio3sk_duplicate", icon_value=icons.duplicate)
         layout.operator("object.mio3sk_extract_selected", icon_value=icons.duplicate)
         layout.separator()
         layout.operator("object.mio3sk_generate_lr", icon_value=icons.split)
-        layout.operator("object.mio3sk_generate_lr", text="左右のシェイプキーに分割", icon_value=icons.split).remove_source = True
-        layout.operator("object.mio3sk_merge_lr", icon_value=icons.face_all)
-        layout.operator("object.mio3sk_generate_opposite", icon_value=icons.face_mirror)
+        # layout.operator("object.mio3sk_generate_lr", text="左右のシェイプキーに分割", icon_value=icons.split).remove_source = True
+        layout.operator("object.mio3sk_merge_lr", icon_value=icons.join)
+        layout.operator("object.mio3sk_generate_opposite", icon_value=icons.opposite)
 
         layout.separator()
         layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
         # layout.separator()
         # layout.operator("object.mio3sk_fill_keys")
-
+        layout.separator()
+        layout.operator("object.mio3sk_shape_key_remove", text="Delete All Shape Keys", icon="X").mode = "ALL"
+        layout.operator("object.mio3sk_remove_apply_mix", text="Apply All Shape Keys", icon="X")
         layout.separator()
         layout.operator("object.mio3sk_move_below", icon="TRIA_DOWN")
         layout.separator()
