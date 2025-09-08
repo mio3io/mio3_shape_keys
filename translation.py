@@ -74,7 +74,7 @@ translation_dict = {
         ("*", "VRChat Viseme"): "VRChat Viseme",
         ("*", "MMD Lite"): "MMDモーフ簡易",
         ("*", "Perfect Sync"): "パーフェクトシンク",
-        ("Operator", "Fill Shape Keys"): "足りないシェイプキーを埋める",
+        ("Operator", "Fill Shape Keys"): "不足するシェイプキーを補完",
         ("*", "Fill shapekeys from collection"): "コレクションから不足しているシェイプキーを埋める",
 
         # Batch Rename

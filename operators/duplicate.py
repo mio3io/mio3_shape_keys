@@ -75,7 +75,7 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
 
 class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
     bl_idname = "object.mio3sk_generate_lr"
-    bl_label = "左右のシェイプキーを生成"
+    bl_label = "左右のシェイプキーに分離"
     bl_description = "アクティブキーから左右のシェイプキーを生成します"
     bl_options = {"REGISTER", "UNDO"}
 

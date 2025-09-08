@@ -52,8 +52,8 @@ class MIO3SK_MT_add(Menu):
 
         layout.separator()
         layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
-        # layout.separator()
-        # layout.operator("object.mio3sk_fill_keys")
+        layout.separator()
+        layout.operator("object.mio3sk_fill_keys")
         layout.separator()
         layout.operator("object.mio3sk_shape_key_remove", text="Delete All Shape Keys", icon="X").mode = "ALL"
         layout.operator("object.mio3sk_remove_apply_mix", text="Apply All Shape Keys", icon="X")
