@@ -1,6 +1,7 @@
 import csv
 import os
 import bpy
+from bpy.types import Object
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import has_shape_key, is_sync_collection, get_unique_name, move_shape_key_below
@@ -8,29 +9,69 @@ from ..utils.ext_data import check_update
 from ..globals import SHAPE_KEYS_DIR, SHAPE_SYNC_RULES_DIR
 
 
+def get_collection_keys(obj: Object):
+    collection_keys = []
+    for cobj in [o for o in obj.mio3sk.syncs.objects if has_shape_key(o)]:
+        for name in cobj.data.shape_keys.key_blocks.keys():
+            if name not in collection_keys:
+                collection_keys.append(name)
+    return collection_keys
+
+
 class OBJECT_OT_mio3sk_shape_key_add(Mio3SKGlobalOperator):
     bl_idname = "object.mio3sk_shape_key_add"
     bl_label = "Add Shape Key"
-    bl_description = "Add shape key to the object"
+    bl_description = "オブジェクトにシェイプキーを追加します。\n[+Alt]同期コレクションのオブジェクトすべてに追加"
     bl_options = {"REGISTER", "UNDO"}
-    from_mix: BoolProperty(default=False)
+    from_mix: BoolProperty(default=False, options={"SKIP_SAVE", "HIDDEN"})
+    sync: BoolProperty(default=False, options={"SKIP_SAVE", "HIDDEN"})
+    name: StringProperty(name="Name", default="New Key", options={"SKIP_SAVE"})
 
     @classmethod
     def poll(cls, context):
         obj = context.active_object
         return obj is not None and obj.mode == "OBJECT"
 
+    def invoke(self, context, event):
+        obj = context.active_object
+        if event.alt or self.sync:
+            self.sync = True
+            collection_keys = get_collection_keys(obj)
+            self.name = get_unique_name(collection_keys, "Key")
+            return context.window_manager.invoke_props_dialog(self)
+        return self.execute(context)
+
     def execute(self, context):
         obj = context.active_object
-        if not obj.data.shape_keys:
-            obj.shape_key_add(name="Basis", from_mix=self.from_mix)
+        prop_o = obj.mio3sk
+
+        if self.sync and is_sync_collection(obj):
+            collection_objects = [o for o in prop_o.syncs.objects if has_shape_key(o)]
+            for cobj in collection_objects:
+                for name in cobj.data.shape_keys.key_blocks.keys():
+                    if name == self.name:
+                        self.report({"WARNING"}, "キー名 '{}' はすでに存在しています".format(name))
+                        return {"CANCELLED"}
+
+            for o in collection_objects:
+                self.add_shape_key(o, self.name)
+                check_update(context, o)
         else:
+            if not obj.data.shape_keys:
+                obj.shape_key_add(name="Basis")
             new_name = get_unique_name(obj.data.shape_keys.key_blocks.keys(), "Key")
-            obj.shape_key_add(name=new_name, from_mix=self.from_mix)
+            self.add_shape_key(obj, new_name)
+        return {"FINISHED"}
+
+    def add_shape_key(self, obj: Object, name: str):
+        obj.shape_key_add(name=name, from_mix=self.from_mix)
         obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
 
-        # check_update(context, obj)
-        return {"FINISHED"}
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="同期コレクションのオブジェクトすべてに追加")
+        if self.sync:
+            layout.prop(self, "name")
 
 
 class OBJECT_OT_mio3sk_add_below(Mio3SKOperator):
@@ -151,7 +192,7 @@ class OBJECT_OT_mio3sk_add_preset(Mio3SKGlobalOperator):
 class OBJECT_OT_mio3sk_fill_keys(Mio3SKGlobalOperator):
     bl_idname = "object.mio3sk_fill_keys"
     bl_label = "Fill Shape Keys"
-    bl_description = "コレクション内で使用されているキーをすべて作成n"
+    bl_description = "コレクション内で使用されているキーをすべて作成"
     bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
