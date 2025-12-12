@@ -50,7 +50,7 @@ class OBJECT_OT_mio3sk_shape_key_add(Mio3SKGlobalOperator):
             for cobj in collection_objects:
                 for name in cobj.data.shape_keys.key_blocks.keys():
                     if name == self.name:
-                        self.report({"WARNING"}, "キー名 '{}' はすでに存在しています".format(name))
+                        self.report({"ERROR"}, "オブジェクト「{}」にキー名「{}」が存在しているためキャンセルされました".format(cobj.name, name))
                         return {"CANCELLED"}
 
             for o in collection_objects:
