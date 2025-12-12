@@ -242,6 +242,7 @@ def create_composer_rule(ext, composer_type, name, value=1.0):
     source.value = value
 
 
+# グループごとのシェイプキーリストを取得
 def get_key_groups(obj: Object) -> list[list[ShapeKey]]:
     ext_data = obj.mio3sk.ext_data
     key_blocks = obj.data.shape_keys.key_blocks
@@ -257,6 +258,34 @@ def get_key_groups(obj: Object) -> list[list[ShapeKey]]:
     if current:
         groups.append(current)
     return groups
+
+
+# アクティブインデックスが属するグループヘッダーを取得
+def get_group_ext(obj: Object, active_shape_key_index):
+    ext_data = obj.mio3sk.ext_data
+    key_blocks = obj.data.shape_keys.key_blocks
+    if active_shape_key_index is None or active_shape_key_index < 0 or active_shape_key_index >= len(key_blocks):
+        return None
+
+    group_head_ext = None
+    for idx, kb in enumerate(key_blocks[1:], start=1):
+        ext = ext_data.get(kb.name)
+        is_head = bool(ext and ext.is_group)
+        if is_head:
+            group_head_ext = ext
+        if idx == active_shape_key_index:
+            return group_head_ext
+    return None
+
+
+# グループの情報をコピー
+def copy_ext_info(source_ext, target_ext):
+    group_tags = source_ext.tags
+    key_label = source_ext.key_label
+    for tag in group_tags:
+        new_tag = target_ext.tags.add()
+        new_tag.name = tag.name
+    target_ext.key_label.color = key_label.color
 
 
 def clear_filter(context: Context, obj: Object):

@@ -7,7 +7,14 @@ from bpy.props import BoolProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key, valid_shape_key, move_shape_key_below
-from ..utils.ext_data import check_update, refresh_filter_flag, create_composer_rule, refresh_ext_data
+from ..utils.ext_data import (
+    check_update,
+    refresh_filter_flag,
+    create_composer_rule,
+    refresh_ext_data,
+    get_group_ext,
+    copy_ext_info,
+)
 from ..utils.mirror import get_mirror_name
 
 
@@ -67,6 +74,7 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
         new_ext = obj.mio3sk.ext_data.get(new_kb.name)
         if active_ext and new_ext:
             new_ext["select"] = active_ext.select
+            copy_ext_info(active_ext, new_ext)
 
         check_update(context, obj)
         refresh_filter_flag(context, obj)
@@ -184,6 +192,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
     def create_shape_key(self, obj: Object, key_blocks, name):
         prop_o = obj.mio3sk
         active_kb: ShapeKey = key_blocks[name]
+        active_ext = prop_o.ext_data.get(active_kb.name)
 
         new_kb_l = obj.shape_key_add(name="{}{}".format(active_kb.name, "_L"), from_mix=False)
         new_kb_r = obj.shape_key_add(name="{}{}".format(active_kb.name, "_R"), from_mix=False)
@@ -222,6 +231,9 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         if self.mode == "SELECTED":
             ext_l["select"] = True
             ext_r["select"] = True
+
+        copy_ext_info(active_ext, ext_l)
+        copy_ext_info(active_ext, ext_r)
 
         if self.setup_rules:
             if self.remove_source:
@@ -379,6 +391,10 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
         new_kb.data.foreach_set("co", new_co)
 
         refresh_ext_data(obj, added=True)  # extを作る
+
+        active_ext = obj.mio3sk.ext_data.get(active_kb.name)
+        ext = obj.mio3sk.ext_data.get(new_kb.name)
+        copy_ext_info(active_ext, ext)
 
         if self.setup_rules:
             ext = obj.mio3sk.ext_data.get(new_kb.name)
