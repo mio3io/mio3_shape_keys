@@ -34,7 +34,7 @@ class OBJECT_OT_mio3sk_shape_key_add(Mio3SKGlobalOperator):
 
     def invoke(self, context, event):
         obj = context.active_object
-        if event.alt or self.sync:
+        if (event.alt or self.sync) and is_sync_collection(obj):
             self.sync = True
             collection_keys = get_collection_keys(obj)
             self.name = get_unique_name(collection_keys, "Key")
