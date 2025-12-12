@@ -1,10 +1,9 @@
 import bpy
 import time
 import numpy as np
-from bpy.types import Context
-from bpy.types import PropertyGroup
+from bpy.types import Context, Object, PropertyGroup
 from bpy.props import BoolProperty, CollectionProperty
-from ..utils.utils import is_local_obj, valid_shape_key
+from ..utils.utils import is_local_obj
 from ..classes.operator import Mio3SKOperator
 
 # EXCLUDE_MODIFIERS = {"DECIMATE", "WELD", "EDGE_SPLIT", "REMESH"}
@@ -26,7 +25,7 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
     )
 
     apply_modifiers: CollectionProperty(type=OBJECT_PG_mio3sk_check_modifier)
-    has_shape_keys: BoolProperty(options={"HIDDEN"}, default=False)
+    # has_shape_keys: BoolProperty(options={"HIDDEN"}, default=False)
 
     @classmethod
     def poll(cls, context):
@@ -35,26 +34,18 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
 
     def invoke(self, context: Context, event):
         obj = context.active_object
-        self.has_shape_keys = valid_shape_key(obj)
+        selected_objects = [ob for ob in context.selected_objects if is_local_obj(ob)]
 
-        if not is_local_obj(obj):
-            return {"CANCELLED"}
-
-        if obj.hide_viewport:
-            self.report({"WARNING"}, "オブジェクトをアクティブにしてください")
-            return {"CANCELLED"}
-
-        if not obj.modifiers:
-            self.report({"WARNING"}, "モディファイアがありません")
+        if not selected_objects:
             return {"CANCELLED"}
 
         self.apply_modifiers.clear()
-        for mod in obj.modifiers:
-            if not mod.show_viewport:
-                continue
-            item = self.apply_modifiers.add()
-            item.name = mod.name
-            item.selected = False
+        for obj in selected_objects:
+            for mod in obj.modifiers:
+                if mod.name not in self.apply_modifiers:
+                    item = self.apply_modifiers.add()
+                    item.name = mod.name
+                    item.selected = False
 
         return context.window_manager.invoke_props_dialog(self)
 
@@ -62,16 +53,40 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         start_time = time.time()
         obj = context.active_object
 
+        selected_objects = [ob for ob in context.selected_objects if is_local_obj(ob)]
+
         selected_modifiers = [item.name for item in self.apply_modifiers if item.selected]
 
-        if not self.has_shape_keys:
+        error = False
+        for obj in selected_objects:
+            if any(mod.name in selected_modifiers for mod in obj.modifiers):
+                if not self.modifier_apply(context, obj, selected_modifiers):
+                    error = True
+                    self.report({"WARNING"}, "[Object:{}] 一部のシェイプキーが統合できませんでした。Ctrl+Zで元に戻せます。選択キー→「エラー要因のキーを選択」でエラーになるキーを確認できます。".format(obj.name))
+
+        if not error:
+            self.report({"INFO"}, "モディフィアを適用しました")
+
+        print("Time: {:.5f}".format(time.time() - start_time))
+        return {"FINISHED"}
+    
+    def modifier_apply(self, context: Context, obj: Object, selected_modifiers):
+        print("Applying Modifiers to Object:", obj.name)
+
+        for ob in context.scene.objects:
+            ob.select_set(False)
+
+        obj.select_set(True)
+        context.view_layer.objects.active = obj
+
+        if not self.valid_shape_key(obj):
             for modifier_name in selected_modifiers:
                 if modifier_name in obj.modifiers:
                     try:
                         bpy.ops.object.modifier_apply(modifier=modifier_name)
                     except:
                         continue
-            return {"FINISHED"}
+            return True
 
         key_blocks = obj.data.shape_keys.key_blocks
         basis_kb = obj.data.shape_keys.reference_key
@@ -93,9 +108,6 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
             if np.any(np.abs(basis_co - shape_co) > 0.00001):
                 continue
             unused.add(kb.name)
-
-        for ob in context.scene.objects:
-            ob.select_set(False)
 
         modifiers_to_keep = set(selected_modifiers)
 
@@ -137,7 +149,7 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         error = False
         for kb in copy_key_blocks[1:]:
             if kb.name in unused:
-                obj.shape_key_add(name=kb.name, from_mix=False)
+                new_shape_key = obj.shape_key_add(name=kb.name, from_mix=False)
             else:
                 kb.value = 1.0
                 depsgraph = context.evaluated_depsgraph_get()
@@ -145,8 +157,8 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
                 eval_mesh = eval_obj.to_mesh()
                 if v_len != len(eval_mesh.vertices):
                     error = True
-                    obj.shape_key_add(name=kb.name, from_mix=False)
-                    print("[{}] 適用後の頂点数が異なるため統合できません".format(kb.name))
+                    new_shape_key = obj.shape_key_add(name=kb.name, from_mix=False)
+                    # print("[Object:{} Key:{}] 適用後の頂点数が異なるため統合できません".format(obj.name, kb.name))
                 else:
                     eval_co_raw = np.empty(len(eval_mesh.vertices) * 3, dtype=np.float32)
                     new_shape_key = obj.shape_key_add(name=kb.name, from_mix=False)
@@ -154,6 +166,7 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
                     new_shape_key.data.foreach_set("co", eval_co_raw)
                 eval_obj.to_mesh_clear()
                 kb.value = 0.0
+            new_shape_key.value = 0.0
 
         self.remove_object(copy_obj)
 
@@ -162,19 +175,17 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
                 mod.show_viewport = modifier_states[mod.name]
         obj.show_only_shape_key = show_only_shape_key
 
-        if error:
-            self.report({"WARNING"}, "一部のシェイプキーが統合できませんでした。Ctrl+Zで元に戻せます。選択キー→「エラー要因のキーを選択」でエラーになるキーを確認できます。")
-        else:
-            self.report({"INFO"}, "モディフィアを適用しました")
-            print("Time: {:.5f}".format(time.time() - start_time))
-
-        return {"FINISHED"}
+        return not error
 
     @staticmethod
     def remove_object(obj):
         mesh = obj.data
         bpy.data.objects.remove(obj, do_unlink=True)
         bpy.data.meshes.remove(mesh, do_unlink=True)
+
+    @staticmethod
+    def valid_shape_key(obj):
+        return obj.type == "MESH" and obj.data.shape_keys is not None and 0 <= obj.active_shape_key_index
 
     def draw(self, context):
         layout = self.layout
@@ -183,11 +194,11 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         for item in self.apply_modifiers:
             col.prop(item, "selected", text=item.name)
 
-        if self.has_shape_keys:
-            layout.separator()
-            col = layout.column()
-            col.label(text="Options")
-            col.prop(self, "cancel_mirror_merge")
+        # if self.has_shape_keys:
+        layout.separator()
+        col = layout.column()
+        col.label(text="Options")
+        col.prop(self, "cancel_mirror_merge")
 
             # box = layout.box()
             # col = box.column(align=True)
@@ -202,10 +213,13 @@ classes = [
 ]
 
 def object_menu_item(self, context):
-    from bl_ui_utils.layout import operator_context
-    self.layout.separator()
-    with operator_context(self.layout, "INVOKE_DEFAULT"):
-        self.layout.operator("object.mio3sk_modifier_apply")
+    # from bl_ui_utils.layout import operator_context
+    layout = self.layout
+    layout.separator()
+    layout.operator_context = "INVOKE_DEFAULT"
+    layout.operator("object.mio3sk_modifier_apply")
+    # with operator_context(self.layout, "INVOKE_DEFAULT"):
+    #     self.layout.operator("object.mio3sk_modifier_apply")
 
 
 def register():
