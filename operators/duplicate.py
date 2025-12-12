@@ -529,49 +529,11 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
             move_shape_key_below(obj, target_idx - 1, merged_idx)
 
 
-class OBJECT_OT_mio3sk_extract_selected(Mio3SKOperator):
-    bl_idname = "object.mio3sk_extract_selected"
-    bl_label = "選択範囲からシェイプキーを作成"
-    bl_description = "選択した頂点部分から新しいキーを作成"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        return obj is not None and valid_shape_key(obj) and obj.mode == "OBJECT"
-
-    def execute(self, context):
-        self.start_time()
-        obj = context.active_object
-
-        selected_verts = [v.index for v in obj.data.vertices if v.select]
-
-        if not selected_verts:
-            self.report({"WARNING"}, "頂点が選択されていません")
-            bpy.ops.object.mode_set(mode="EDIT")
-            return {"CANCELLED"}
-
-        active_kb = obj.active_shape_key
-
-        new_name = "{} extract".format(active_kb.name)
-        new_kb = obj.shape_key_add(name=new_name, from_mix=False)
-
-        for i in selected_verts:
-            new_kb.data[i].co = active_kb.data[i].co.copy()
-
-        check_update(context, obj)
-        refresh_filter_flag(context, obj)
-
-        self.print_time()
-        return {"FINISHED"}
-
-
 classes = [
     OBJECT_OT_mio3sk_duplicate,
     OBJECT_OT_mio3sk_generate_lr,
     OBJECT_OT_mio3sk_generate_opposite,
     OBJECT_OT_mio3sk_merge_lr,
-    OBJECT_OT_mio3sk_extract_selected,
 ]
 
 

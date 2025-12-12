@@ -43,7 +43,6 @@ class MIO3SK_MT_add(Menu):
         layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="シェイプキーの追加（コレクション）").sync = True
         layout.separator()
         layout.operator("object.mio3sk_duplicate", icon_value=icons.duplicate)
-        layout.operator("object.mio3sk_extract_selected", icon_value=icons.duplicate)
         layout.separator()
         layout.operator("object.mio3sk_generate_lr", icon_value=icons.split)
         # layout.operator("object.mio3sk_generate_lr", text="左右のシェイプキーに分割", icon_value=icons.split).remove_source = True
