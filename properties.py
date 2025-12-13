@@ -12,7 +12,7 @@ from bpy.props import (
 )
 from .icons import icons
 from .utils.utils import has_shape_key
-from .utils.ext_data import refresh_filter_flag, refresh_ui_info
+from .utils.ext_data import refresh_filter_flag
 from .globals import TAG_COLOR_DEFAULT, LABEL_COLOR_DEFAULT
 from .subscribe import callback_show_only_shape_key
 
@@ -24,7 +24,7 @@ class OBJECT_PG_mio3sk_key(PropertyGroup):
 
 # プリセット登録キー
 class OBJECT_PG_mio3sk_ext_data_preset_key(PropertyGroup):
-    value: FloatProperty(name="Value", default=1, min=0, max=1)
+    value: FloatProperty(name="Value", default=1, min=0, max=1, options=set())
 
 
 # プリセットアイテム
@@ -40,14 +40,17 @@ class OBJECT_PG_mio3sk_ext_data_setting_preset(PropertyGroup):
         name="Preset Name",
         get=get_preset_name,
         set=set_preset_name,
+        options=set(),
     )
     hide: BoolProperty(
         name="Hide",
         default=False,
+        options=set(),
     )
     shape_keys: CollectionProperty(
         name="Shape Keys",
         type=OBJECT_PG_mio3sk_ext_data_preset_key,
+        options=set(),
     )
 
 
@@ -90,10 +93,11 @@ class OBJECT_PG_mio3sk_ext_data_setting_tag(PropertyGroup):
         update=update_tag_name,
         get=get_tag_name,
         set=set_tag_name,
+        options=set(),
     )
-    old_name: StringProperty(name="Old Name")
-    active: BoolProperty(name="Active", update=callback_update_tag_active)
-    hide: BoolProperty(name="Hide", default=False)
+    old_name: StringProperty(name="Old Name", options=set())
+    active: BoolProperty(name="Active", update=callback_update_tag_active, options=set())
+    hide: BoolProperty(name="Hide", default=False, options=set())
     color: FloatVectorProperty(
         name="Color",
         subtype="COLOR",
@@ -102,18 +106,27 @@ class OBJECT_PG_mio3sk_ext_data_setting_tag(PropertyGroup):
         min=0.0,
         max=1.0,
         update=callback_color,
+        options=set(),
     )
 
 
 # メインタグ
 class OBJECT_PG_mio3sk_ext_data_tag(PropertyGroup):
-    color: FloatVectorProperty(name="Color", subtype="COLOR", default=LABEL_COLOR_DEFAULT, size=3, min=0.0, max=1.0)
+    color: FloatVectorProperty(
+        name="Color",
+        subtype="COLOR",
+        default=LABEL_COLOR_DEFAULT,
+        size=3,
+        min=0.0,
+        max=1.0,
+        options=set(),
+    )
 
 
 # コンポーザーのソース
 class OBJECT_PG_mio3sk_ext_data_source_key(PropertyGroup):
-    value: FloatProperty(name="Value", default=1, min=0, max=1)
-    mask: StringProperty(name="Mask", description="Optional")
+    value: FloatProperty(name="Value", default=1, min=0, max=1, options=set())
+    mask: StringProperty(name="Mask", description="Optional", options=set())
 
 
 # 拡張プロパティ
@@ -130,62 +143,94 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         return items
 
     def callback_ext_data_select(self, context):
+        print("callback_ext_data_select")
         # obj = context.object
         # グループを一括切り替え
         if self.is_group:
             bpy.ops.object.mio3sk_select_group_toggle("INVOKE_DEFAULT", key=self.name)
-
-        # refresh_filter_flag(context, context.object)
-        refresh_ui_info(context.object)
+        else:
+            refresh_filter_flag(context, context.object)
 
     def callback_is_group_close(self, context):
         refresh_filter_flag(context, context.object)
+
+    def callback_is_group(self, context):
+        refresh_filter_flag(context, context.object)
+
+    def callback_is_group_color(self, context):
+        obj = context.object
+        ext_data = obj.mio3sk.ext_data
+        group_found = False
+        for kb in obj.data.shape_keys.key_blocks[1:]:
+            if (ext := ext_data.get(kb.name)) is not None:
+                if not group_found:
+                    if ext.name == self.name and ext.is_group:
+                        group_found = True
+                    continue
+                if ext.is_group:
+                    break
+                ext["group_color"] = self.group_color
 
     select: BoolProperty(
         name="Select\n[Ctrl] Group Select",
         default=False,
         update=callback_ext_data_select,
+        options=set(),
     )
     key_label: PointerProperty(
         name="Main Tag",
         type=OBJECT_PG_mio3sk_ext_data_tag,
+        options=set(),
     )
     is_group: BoolProperty(
         name="Group",
         default=False,
+        update=callback_is_group,
+        options=set(),
     )
-    is_group_close: BoolProperty(
-        name="Group Hide",
-        default=False,
-        update=callback_is_group_close,
+    is_group_close: BoolProperty(name="Group Hide", default=False, update=callback_is_group_close, options=set())
+    group_len: IntProperty(name="Group Count", default=0, options=set())
+    group_color: FloatVectorProperty(
+        name="Color",
+        subtype="COLOR",
+        default=LABEL_COLOR_DEFAULT,
+        size=3,
+        min=0.0,
+        max=1.0,
+        update=callback_is_group_color,
+        options=set(),
     )
-    group_len: IntProperty(name="Group Count", default=0)
 
-    filter_flag: BoolProperty(name="Filter Hide Flag", default=False)
+    filter_flag: BoolProperty(name="Filter Hide Flag", default=False, options=set())
 
     tags: CollectionProperty(
         name="Assigned Tags",
         type=OBJECT_PG_mio3sk_ext_data_tags_tag,
+        options=set(),
     )
-    composer_enabled: BoolProperty(name="Composer Enabled", default=False)
+    composer_enabled: BoolProperty(name="Composer Enabled", default=False, options=set())
     composer_type: EnumProperty(
         name="Composer Copy Type",
         default=None,
         items=composer_type_items,
+        options=set(),
     )
     composer_source: CollectionProperty(
         name="Composer Source",
         type=OBJECT_PG_mio3sk_ext_data_source_key,
+        options=set(),
     )
     composer_source_object: PointerProperty(
         name="Composer Source Object",
         type=Object,
+        options=set(),
     )
     composer_source_mask: StringProperty(name="Composer Mask")
     protect_delta: BoolProperty(
         name="Basis適用時にデルタを保護する",
         description="まばたきやウィンク、△くちなど、Basis適用で崩れるキーに設定する",
         default=False,
+        options=set(),
     )
 
 
@@ -216,27 +261,34 @@ class OBJECT_PG_mio3sk(PropertyGroup):
     store_names: CollectionProperty(
         name="Shape Key Names",
         type=OBJECT_PG_mio3sk_key,
+        options=set(),
     )
     ext_data: CollectionProperty(
         name="Extend Data",
         type=OBJECT_PG_mio3sk_ext_data,
+        options=set(),
     )
 
     # 機能の使用
-    syncs: PointerProperty(name="Collection Sync", type=Collection, update=callback_syncs)
-    use_tags: BoolProperty(name="Use Tags", default=False)
-    use_preset: BoolProperty(name="Use Preset", default=False)
-    use_composer: BoolProperty(name="Use Composer", default=False)
+    syncs: PointerProperty(name="Collection Sync", type=Collection, update=callback_syncs, options=set())
+    use_tags: BoolProperty(name="Use Tags", default=False, options=set())
+    use_preset: BoolProperty(name="Use Preset", default=False, options=set())
+    use_composer: BoolProperty(name="Use Composer", default=False, options=set())
 
     # UI用キャッシュ
-    visible_len: IntProperty(name="Visible Length", default=0)
-    selected_len: IntProperty(name="Selected Length", default=0)
-    composer_global_enabled: BoolProperty(name="Use Composer Rules", default=False)
+    visible_len: IntProperty(name="Visible Length", default=0, options=set())
+    selected_len: IntProperty(name="Selected Length", default=0, options=set())
+    composer_global_enabled: BoolProperty(name="Use Composer Rules", default=False, options=set())
     is_group_global_close: BoolProperty(
-        name="すべて開くまたは閉じる（任意のプレフィックスでグループ化）", default=False, update=callback_is_group_global_close
+        name="すべて開くまたは閉じる（任意のプレフィックスでグループ化）",
+        default=False,
+        update=callback_is_group_global_close,
+        options=set(),
     )
     # フィルター
-    is_global_select: BoolProperty(name="すべて選択または解除", default=False, update=callback_is_global_select)
+    is_global_select: BoolProperty(
+        name="すべて選択または解除", default=False, update=callback_is_global_select, options=set()
+    )
     filter_name: StringProperty(
         name="Filter by Name",
         update=callback_filter_name,
@@ -246,20 +298,23 @@ class OBJECT_PG_mio3sk(PropertyGroup):
         name="選択中のキーのみを表示",
         default=False,
         update=callback_filter_select,
+        options=set(),
     )
 
     preset_list: CollectionProperty(
         name="Preset List",
         type=OBJECT_PG_mio3sk_ext_data_setting_preset,
+        options=set(),
     )
-    preset_active_index: IntProperty(name="Preset Active Index")
-    preset_wrap: IntProperty(name="Wrap Count", min=1, max=10, default=5)
+    preset_active_index: IntProperty(name="Preset Active Index", options=set())
+    preset_wrap: IntProperty(name="Wrap Count", min=1, max=10, default=5, options=set())
     tag_list: CollectionProperty(
         name="Tags List",
         type=OBJECT_PG_mio3sk_ext_data_setting_tag,
+        options=set(),
     )
-    tag_active_index: IntProperty(name="Tag Active Index")
-    tag_wrap: IntProperty(name="Wrap Count", min=1, max=10, default=5)
+    tag_active_index: IntProperty(name="Tag Active Index", options=set())
+    tag_wrap: IntProperty(name="Wrap Count", min=1, max=10, default=5, options=set())
 
 
 class WM_PG_mio3sk_string(PropertyGroup):
@@ -278,19 +333,19 @@ class SCENE_PG_mio3sk(PropertyGroup):
             panel_factor -= 0.05
         self.panel_factor = panel_factor
 
-    show_select: BoolProperty(name="Show Select", default=True)
-    show_lock: BoolProperty(name="Show Lock", default=True, update=refresh_panel_factor)
-    show_mute: BoolProperty(name="Show Mute", default=True, update=refresh_panel_factor)
-    show_keyframe: BoolProperty(name="Show Keyframe", default=False, update=refresh_panel_factor)
-    show_props_tags: BoolProperty(name="Show Props Tag", default=True)
-    show_props_composer: BoolProperty(name="Show Props Composer", default=True)
-    hide_group_value: BoolProperty(name="グループのスライダーを非表示", default=True)
-    panel_factor: FloatProperty(name="Panel factor", default=0.63)
+    show_select: BoolProperty(name="Show Select", default=True, options=set())
+    show_lock: BoolProperty(name="Show Lock", default=True, update=refresh_panel_factor, options=set())
+    show_mute: BoolProperty(name="Show Mute", default=True, update=refresh_panel_factor, options=set())
+    show_keyframe: BoolProperty(name="Show Keyframe", default=False, update=refresh_panel_factor, options=set())
+    show_props_tags: BoolProperty(name="Show Props Tag", default=True, options=set())
+    show_props_composer: BoolProperty(name="Show Props Composer", default=True, options=set())
+    hide_group_value: BoolProperty(name="グループのスライダーを非表示", default=True, options=set())
+    panel_factor: FloatProperty(name="Panel factor", default=0.63, options=set())
 
-    blend: FloatProperty(name="Blend", default=1, soft_min=-1, soft_max=2, step=10)
+    blend: FloatProperty(name="Blend", default=1, soft_min=-1, soft_max=2, step=10, options=set())
 
-    composer_auto: BoolProperty(name="シェイプの同期を自動で適用", default=False)
-    composer_auto_skip: BoolProperty(name="自動適用のスキップ", default=False)
+    composer_auto: BoolProperty(name="シェイプの同期を自動で適用", default=False, options=set())
+    composer_auto_skip: BoolProperty(name="自動適用のスキップ", default=False, options=set())
 
 
 class WM_PG_mio3sk(PropertyGroup):
@@ -320,29 +375,33 @@ class WM_PG_mio3sk(PropertyGroup):
     select_history: CollectionProperty(
         name="Select History",
         type=WM_PG_mio3sk_string,
+        options=set(),
     )
 
-    apply_to_basis: StringProperty(name="Apply to Basis")
+    apply_to_basis: StringProperty(name="Apply to Basis", options=set())
     import_source: PointerProperty(
         name="転送元のオブジェクト",
         type=Object,
         poll=poll_source_object,
+        options=set(),
     )
-    copy_source: StringProperty(name="Copy Source")
-    blend_source_name: StringProperty(name="Blend Source", update=callback_blend_source_name)
-    blend_smooth: BoolProperty(name="スムーズブレンド", default=False)
+    copy_source: StringProperty(name="Copy Source", options=set())
+    blend_source_name: StringProperty(name="Blend Source", update=callback_blend_source_name, options=set())
+    blend_smooth: BoolProperty(name="スムーズブレンド", default=False, options=set())
     tag_filter_type: EnumProperty(
         name="Tag Filter Type",
         items=[("OR", "OR", ""), ("AND", "AND", "")],
         update=callback_tag_filter_type,
+        options=set(),
     )
-    tag_filter_invert: BoolProperty(name="Tag Invert", default=False, update=callback_filter_state)
-    tag_manage: BoolProperty(name="Tag Edit", default=False, update=callback_tag_manage)
-    preset_manage: BoolProperty(name="Preset Edit", default=False)
-    progress: FloatProperty(name="Progress", default=0)
+    tag_filter_invert: BoolProperty(name="Tag Invert", default=False, update=callback_filter_state, options=set())
+    tag_manage: BoolProperty(name="Tag Edit", default=False, update=callback_tag_manage, options=set())
+    preset_manage: BoolProperty(name="Preset Edit", default=False, options=set())
+    progress: FloatProperty(name="Progress", default=0, options=set())
     sort_source: PointerProperty(
         name="ソートの基準",
         type=Object,
+        options=set(),
         # poll=poll_source_object,
     )
 
