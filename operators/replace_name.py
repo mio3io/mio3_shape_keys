@@ -3,7 +3,7 @@ import bpy
 from bpy.props import BoolProperty, IntProperty, StringProperty
 from ..utils.utils import has_shape_key, is_local_obj, valid_shape_key, is_sync_collection
 from ..classes.operator import Mio3SKOperator
-from ..utils.ext_data import rename_ext_data
+from ..utils.ext_data import rename_ext_data, refresh_ext_data
 
 
 class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
@@ -79,6 +79,7 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
                 if key.name != new_name:
                     key.name = new_name
                     rename_ext_data(ob, key.name, new_name)
+                    refresh_ext_data(ob, added=True, removed=True)
         return {"FINISHED"}
 
     @staticmethod
