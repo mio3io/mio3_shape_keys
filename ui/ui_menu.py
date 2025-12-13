@@ -17,8 +17,12 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.operator("object.mio3sk_join_keys", icon_value=icons.join_key)
 
         layout.separator()
-        layout.operator("object.mio3sk_shape_transfer", text="Join as Shapes", icon="FILE_NEW").method = "MESH"
+        layout.operator("object.mio3sk_shape_transfer", text="Join from Mesh Shape", icon="FILE_NEW").method = "MESH"
         layout.operator("object.mio3sk_shape_transfer", text="Transfer Shape Key", icon="FILE_NEW").method = "KEY"
+
+        layout.separator()
+        layout.operator("object.mio3sk_shape_key_remove", text="Delete All", icon="X").mode = "ALL"
+        layout.operator("object.mio3sk_remove_apply_mix", text="Apply All", icon="X")
 
         layout.separator()
         layout.operator("object.mio3sk_replace")
@@ -40,7 +44,7 @@ class MIO3SK_MT_add(Menu):
         layout = self.layout
 
         layout.operator("object.mio3sk_shape_key_add", icon="ADD").sync = False
-        layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="シェイプキーの追加（コレクション）").sync = True
+        # layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="シェイプキーの追加（コレクション）").sync = True
         layout.separator()
         layout.operator("object.mio3sk_duplicate", icon_value=icons.duplicate)
         layout.separator()
@@ -53,9 +57,6 @@ class MIO3SK_MT_add(Menu):
         layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
         layout.separator()
         layout.operator("object.mio3sk_fill_keys")
-        layout.separator()
-        layout.operator("object.mio3sk_shape_key_remove", text="Delete All Shape Keys", icon="X").mode = "ALL"
-        layout.operator("object.mio3sk_remove_apply_mix", text="Apply All Shape Keys", icon="X")
         layout.separator()
         layout.operator("object.mio3sk_move_below", icon="TRIA_DOWN")
         layout.separator()

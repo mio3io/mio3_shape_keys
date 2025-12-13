@@ -70,6 +70,7 @@ translation_dict = {
         ("Operator", "Smart Sort"):"並び替え",
         ("Operator", "from presets"): "プリセットから追加",
         ("Operator", "Import CSV"): "CSVファイルから追加",
+        ("Operator", "Join from Mesh Shape"): "形状をシェイプキーとして追加",
         ("*", "Import Shape Keys from CSV"): "CSVファイルのリストからシェイプキーを追加",
         ("*", "VRChat Viseme"): "VRChat Viseme",
         ("*", "MMD Lite"): "MMDモーフ簡易",
