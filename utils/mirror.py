@@ -42,6 +42,7 @@ PATTERNS = [
 
 
 def get_mirror_name(name):
+    """名前から左右反転した名前を返す"""
     for pat in PATTERNS:
         if not (m := pat["pattern"].match(name)):
             continue
@@ -65,9 +66,41 @@ def get_mirror_name(name):
     return name
 
 
+def parse_mirror_name(name):
+    """左右パターンの名前を解析して返す"""
+    for pat in PATTERNS:
+        m = pat["pattern"].match(name)
+        if not m:
+            continue
+
+        group = m.groupdict()
+        return {
+            "pattern_id": pat.get("id"),
+            "side_type": pat.get("side_type"),
+            "base": group.get("base") or "",
+            "sep": group.get("sep") or "",
+            "side": group.get("side") or "",
+            "opt": group.get("opt") or "",
+        }
+
+    return None
+
+
 def is_lr_name(name, base):
     sep = r"[_\-.]?"
     lr = r"(L|R|Left|Right|l|r|left|right)"
 
     pattern = "^(?:{lr}{sep}{base}|{base}{sep}{lr})$".format(lr=lr, sep=sep, base=re.escape(base))
     return re.match(pattern, name, re.IGNORECASE) is not None
+
+
+def get_side_kind(side):
+    """side を left/right に正規化して返す"""
+    if not side:
+        return None
+    s = side.lower()
+    if s in {"l", "left"}:
+        return "left"
+    if s in {"r", "right"}:
+        return "right"
+    return None

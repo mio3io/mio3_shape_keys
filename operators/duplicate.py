@@ -15,7 +15,7 @@ from ..utils.ext_data import (
     get_group_ext,
     copy_ext_info,
 )
-from ..utils.mirror import get_mirror_name
+from ..utils.mirror import get_mirror_name, parse_mirror_name, get_side_kind
 
 
 class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
@@ -452,25 +452,43 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
         """選択されたシェイプキーからL/Rペアを見つける"""
         lr_pairs = []
         processed = set()
+        selected_set = set(selected_names)
+        selected_lower_map = {n.lower(): n for n in selected_names}
 
         for name in selected_names:
             if name in processed:
                 continue
 
-            if name.endswith("_L"):
-                base_name = name[:-2]
-                r_name = base_name + "_R"
-                if r_name in selected_names:
-                    lr_pairs.append((base_name, name, r_name))
-                    processed.add(name)
-                    processed.add(r_name)
-            elif name.endswith("_R"):
-                base_name = name[:-2]
-                l_name = base_name + "_L"
-                if l_name in selected_names:
-                    lr_pairs.append((base_name, l_name, name))
-                    processed.add(l_name)
-                    processed.add(name)
+            parts = parse_mirror_name(name)
+            if not parts:
+                continue
+
+            side_kind = get_side_kind(parts.get("side") or "")
+            if not side_kind:
+                continue
+
+            mirror_name = get_mirror_name(name)
+            mirror_name_resolved = None
+            if mirror_name in selected_set:
+                mirror_name_resolved = mirror_name
+            else:
+                mirror_name_resolved = selected_lower_map.get(mirror_name.lower())
+
+            if not mirror_name_resolved or mirror_name_resolved == name:
+                continue
+
+            base_name = "{}{}".format(parts.get("base") or "", parts.get("opt") or "")
+
+            if side_kind == "left":
+                l_name = name
+                r_name = mirror_name_resolved
+            else:
+                l_name = mirror_name_resolved
+                r_name = name
+
+            lr_pairs.append((base_name, l_name, r_name))
+            processed.add(l_name)
+            processed.add(r_name)
 
         return lr_pairs
 
