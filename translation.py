@@ -50,6 +50,7 @@ translation_dict = {
         ("*", "Preset Settings"): "プリセットの設定",
         ("Operator", "Active"): "アクティブ",
         ("*", "Auto Grouping"): "自動グループ化",
+        ("*", "Group Sidebar"): "グループサイドバー",
 
         # Select
         ("*", "Select Keys"): "選択キー",

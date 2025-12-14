@@ -42,8 +42,6 @@ class MIO3SK_Preferences(AddonPreferences):
     # )
     use_auto_x_mirror: BoolProperty(name="Xミラー編集の自動設定 (WIP)", default=True, options=set())
 
-    sidebar_factor: FloatProperty(name="Sidebar Size Factor", default=1.0, min=0.5, max=2.0, options=set())
-
     def draw(self, context):
         layout = self.layout
         prefs = self

@@ -365,7 +365,8 @@ class SCENE_PG_mio3sk(PropertyGroup):
     show_props_composer: BoolProperty(name="Show Props Composer", default=True, options=set())
     hide_group_value: BoolProperty(name="グループのスライダーを非表示", default=True, options=set())
     panel_factor: FloatProperty(name="Panel factor", default=0.63, options=set())
-
+    groupbar_factor: FloatProperty(name="Group Sidebar Size", default=1.0, min=1, max=2.0, options=set())
+    
     blend: FloatProperty(name="Blend", default=1, soft_min=-1, soft_max=2, step=10, options=set())
 
     composer_auto: BoolProperty(name="シェイプの同期を自動で適用", default=False, options=set())

@@ -199,7 +199,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
 
         side_sub = split.column(align=True)
         side_row = side_sub.row(align=True)
-        side_sub.scale_x = 1
+        side_sub.scale_x = prop_s.groupbar_factor
         MIO3SK_PT_main.layout_buttons_add(side_row)
         side_sub.separator(factor=0.8)
 
@@ -231,7 +231,8 @@ class MIO3SK_PT_main(Mio3SKPanel):
 
         side_row = side_sub.row(align=True)
         MIO3SK_PT_main.layout_buttons_move(side_row)
-        side_row.menu("MIO3SK_MT_move", text="", icon="DOWNARROW_HLT")
+        side_row.alignment = "RIGHT"
+        side_row.menu("MIO3SK_MT_move", text="")
 
     @staticmethod
     def layout_select_keys(list_foot, prop_o, selected_len):

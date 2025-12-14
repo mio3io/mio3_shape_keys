@@ -49,6 +49,12 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
         sub.enabled = prop_s.use_group_prefix == "CUSTOM"
         sub.prop(prop_s, "group_prefix", text="Prefix")
 
+        split = layout.split(factor=0.35)
+        split.alignment = "RIGHT"
+        split.label(text="Group Sidebar")
+        sub = split.column()
+        sub.prop(prop_s, "groupbar_factor", text="")
+
         layout.separator()
 
         layout.operator("object.mio3sk_transfer_settings")
