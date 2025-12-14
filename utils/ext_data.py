@@ -55,7 +55,7 @@ def check_update(context: Context, obj: Object, sync=True, callback=None):
 
         for old_name, new_name in rename_keys:
             # debug_function("[🍇RENAME] <{}> Shapekey {} -> {}", [obj.name, old_name, new_name])
-            rename_ext_data(obj, old_name, new_name)
+            rename_ext_data(context, obj, old_name, new_name)
             if callback:
                 callback(context, obj, old_name, new_name)
 
@@ -74,21 +74,21 @@ def check_update(context: Context, obj: Object, sync=True, callback=None):
     elif added_keys or removed_keys:
         if added_keys:
             # debug_function("[🍏ADD] <{}> Shapekey {}", [obj.name, added_keys])
-            refresh_ext_data(obj, added=True)
+            refresh_ext_data(context, obj, added=True)
         if removed_keys:
             # debug_function("[🍎REMOVE] <{}> Shapekey {}", [obj.name, removed_keys])
-            refresh_ext_data(obj, removed=True)
+            refresh_ext_data(context, obj, removed=True)
         refresh_filter_flag(context, obj)
 
     # debug_function("🍭 {:.5f} check_update".format(time.time() - start_time))
 
 
 # 追加・削除の拡張データを更新
-def refresh_ext_data(obj: Object, added=False, removed=False):
+def refresh_ext_data(context: Context, obj: Object, added=False, removed=False):
     # debug_function("  🐡refresh_ext_data <{}>", obj.name)
     prop_o = obj.mio3sk
     ext_data = prop_o.ext_data
-    prefs = get_preferences()
+    prop_s = context.scene.mio3sk
     latest_key_names = obj.data.shape_keys.key_blocks.keys()
 
     # キーの削除
@@ -106,14 +106,14 @@ def refresh_ext_data(obj: Object, added=False, removed=False):
                 item.name = name
 
     # 拡張データの更新
-    prefix = ("---", "===") if prefs.use_group_prefix == "AUTO" else prefs.group_prefix
+    prefix = ("---", "===") if prop_s.use_group_prefix == "AUTO" else prop_s.group_prefix
     key_blocks = obj.data.shape_keys.key_blocks
     current_color = LABEL_COLOR_DEFAULT
     for kb in key_blocks[1:]:
         if (ext := ext_data.get(kb.name)) is None:
             continue
 
-        if prefs.use_group_prefix != "NONE":
+        if prop_s.use_group_prefix != "NONE":
             ext["is_group"] = ext.name.startswith(prefix)
 
         if ext.is_group:
@@ -137,16 +137,15 @@ def refresh_ext_data(obj: Object, added=False, removed=False):
 
 
 # 拡張プロパティで使用している名前の更新 拡張データ名、ソース元、ブレンドソース、プリセット
-def rename_ext_data(obj: Object, old_name, new_name):
+def rename_ext_data(context: Context, obj: Object, old_name, new_name):
     # debug_function("  🍊rename_ext_data <{}> {} -> {}", [obj.name, old_name, new_name])
-    prefs = get_preferences()
-
-    prefix = ("---", "===") if prefs.use_group_prefix == "AUTO" else prefs.group_prefix
+    prop_s = context.scene.mio3sk
+    prefix = ("---", "===") if prop_s.use_group_prefix == "AUTO" else prop_s.group_prefix
     for ext in obj.mio3sk.ext_data:
         # ext自体を更新
         if ext.name == old_name:
             ext.name = new_name
-            if prefs.use_group_prefix != "NONE":
+            if prop_s.use_group_prefix != "NONE":
                 ext["is_group"] = new_name.startswith(prefix)
             ext["is_group_close"] = False
 
@@ -195,7 +194,7 @@ def refresh_filter_flag(context: Context, obj: Object):
     name_filter = name_filter.lower() if name_filter else None
 
     active_tags = None
-    if prop_o.tag_list:
+    if prop_o.use_tags and prop_o.tag_list:
         active_tags = [t.name for t in prop_o.tag_list if t.active]
         if not active_tags:
             active_tags = None
@@ -205,21 +204,36 @@ def refresh_filter_flag(context: Context, obj: Object):
 
     ext_by_name = {ext.name: ext for ext in ext_data}
 
+    group_active = any(item.is_group_active for item in prop_o.ext_data if item.is_group)
+    # グループの開閉フラグ
     hide_names = set()
-    current_hide = False
+    current_hide = group_active if True else False
     for kb in key_blocks[1:]:
         ext = ext_by_name.get(kb.name)
         if not ext:
             continue
+
+        # is_group_close なら非表示。
+        # group_active がTrueのときは is_group_active なグループだけ表示し、それ以外のヘッダーも含めて非表示。
         if ext.is_group:
-            current_hide = ext.is_group_close
-        elif current_hide:
-            hide_names.add(ext.name)
+            if group_active:
+                if not ext.is_group_active:
+                    hide_names.add(ext.name)  # 非アクティブなグループヘッダーも隠す
+                    current_hide = True
+                else:
+                    current_hide = ext.is_group_close
+            else:
+                current_hide = ext.is_group_close
+        else:
+            if current_hide:
+                hide_names.add(ext.name)
 
     for ext in ext_data:
         name = ext.name
         if name == basis_name:
             continue
+
+        # グループ非表示
         if name in hide_names:
             ext.filter_flag = True
             continue
@@ -255,14 +269,19 @@ def refresh_filter_flag(context: Context, obj: Object):
                 flag = not flag
             ext.filter_flag = flag
 
+    refresh_ui_select(obj)
+
+    # print("  🍋 {:.5f} refresh_filter_flag".format(time.time() - start_time))
+
+def refresh_ui_select( obj: Object):
+    prop_o = obj.mio3sk
+    len_ext = len(prop_o.ext_data)
     select_data = [False] * len_ext
     filter_data = [False] * len_ext
     prop_o.ext_data.foreach_get("select", select_data)
     prop_o.ext_data.foreach_get("filter_flag", filter_data)
     prop_o.selected_len = sum(select_data)
     prop_o.visible_len  = len_ext - sum(filter_data)
-
-    # print("  🍋 {:.5f} refresh_filter_flag".format(time.time() - start_time))
 
 
 def create_composer_rule(ext, composer_type, name, value=1.0):

@@ -12,7 +12,7 @@ from bpy.props import (
 )
 from .icons import icons
 from .utils.utils import has_shape_key
-from .utils.ext_data import refresh_filter_flag
+from .utils.ext_data import refresh_ext_data, refresh_filter_flag, refresh_ui_select
 from .globals import TAG_COLOR_DEFAULT, LABEL_COLOR_DEFAULT
 from .subscribe import callback_show_only_shape_key
 
@@ -148,7 +148,7 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         if self.is_group:
             bpy.ops.object.mio3sk_select_group_toggle("INVOKE_DEFAULT", key=self.name)
         else:
-            refresh_filter_flag(context, context.object)
+            refresh_ui_select(context.object)
 
     def callback_is_group_close(self, context):
         refresh_filter_flag(context, context.object)
@@ -176,11 +176,13 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         update=callback_ext_data_select,
         options=set(),
     )
+    # ToDo: 削除
     key_label: PointerProperty(
         name="Main Tag",
         type=OBJECT_PG_mio3sk_ext_data_tag,
         options=set(),
     )
+    label: StringProperty(name="Group Name", options=set())
     is_group: BoolProperty(
         name="Group",
         default=False,
@@ -188,6 +190,8 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         options=set(),
     )
     is_group_close: BoolProperty(name="Group Hide", default=False, update=callback_is_group_close, options=set())
+    is_group_hidden: BoolProperty(name="Group Hidden", default=False, options=set())
+    is_group_active: BoolProperty(name="Group Active", default=False, options=set())
     group_len: IntProperty(name="Group Count", default=0, options=set())
     group_color: FloatVectorProperty(
         name="Color",
@@ -284,8 +288,8 @@ class OBJECT_PG_mio3sk(PropertyGroup):
 
     # 機能の使用
     syncs: PointerProperty(name="Collection Sync", type=Collection, update=callback_syncs, options=set())
-    use_group: BoolProperty(name="Use Groups", default=False, options=set())
-    use_tags: BoolProperty(name="Use Tags", default=False, options=set())
+    use_group: BoolProperty(name="Use Group", default=False, options=set())
+    use_tags: BoolProperty(name="Use Tag", default=False, options=set())
     use_preset: BoolProperty(name="Use Preset", default=False, options=set())
     use_composer: BoolProperty(name="Use Composer", default=False, options=set())
 
@@ -314,6 +318,7 @@ class OBJECT_PG_mio3sk(PropertyGroup):
         update=callback_filter_select,
         options=set(),
     )
+    group_active: BoolProperty(name="Active Group", default=False, options=set())
 
     preset_list: CollectionProperty(
         name="Preset List",
@@ -347,6 +352,11 @@ class SCENE_PG_mio3sk(PropertyGroup):
             panel_factor -= 0.05
         self.panel_factor = panel_factor
 
+    def callback_use_group_prefix(self, context):
+        for obj in bpy.data.objects:
+            if has_shape_key(obj):
+                refresh_ext_data(context, obj)
+
     show_select: BoolProperty(name="Show Select", default=True, options=set())
     show_lock: BoolProperty(name="Show Lock", default=True, update=refresh_panel_factor, options=set())
     show_mute: BoolProperty(name="Show Mute", default=True, update=refresh_panel_factor, options=set())
@@ -360,6 +370,23 @@ class SCENE_PG_mio3sk(PropertyGroup):
 
     composer_auto: BoolProperty(name="シェイプの同期を自動で適用", default=False, options=set())
     composer_auto_skip: BoolProperty(name="自動適用のスキップ", default=False, options=set())
+
+    group_prefix: StringProperty(
+        name="Custom Group Prefix",
+        default="---",
+        update=callback_use_group_prefix,
+    )
+    use_group_prefix: EnumProperty(
+        name="Use Prefix",
+        items=[
+            ("NONE", "None", "No prefix will be used"),
+            ("AUTO", "Auto", "'---' または '===' でグループ化"),
+            ("CUSTOM", "Custom", "Use a custom prefix for grouping shape keys"),
+        ],
+        default="AUTO",
+        description="Automatically group shape keys that have a specific prefix in their names",
+        update=callback_use_group_prefix,
+    )
 
 
 class WM_PG_mio3sk(PropertyGroup):

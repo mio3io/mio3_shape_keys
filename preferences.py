@@ -1,9 +1,7 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, StringProperty
 from .ui import ui_side
-from .utils.ext_data import refresh_ext_data
-from .utils.utils import has_shape_key
 
 
 def reregister_panel_class(cls, category):
@@ -27,45 +25,24 @@ def update_panel(self, context):
 class MIO3SK_Preferences(AddonPreferences):
     bl_idname = __package__
 
-    def callback_use_group_prefix(self, context):
-        for obj in bpy.data.objects:
-            if has_shape_key(obj):
-                refresh_ext_data(obj)
+    category: StringProperty(name="Tab", default="Mio3", update=update_panel, options=set())
 
-    category: StringProperty(name="Tab", default="Mio3", update=update_panel)
-
-    use_sync_active_shapekey: BoolProperty(name="Active Shape Key", default=True)
-    use_sync_name: BoolProperty(name="Shape Key Name", default=True)
+    use_sync_active_shapekey: BoolProperty(name="Active Shape Key", default=True, options=set())
+    use_sync_name: BoolProperty(name="Shape Key Name", default=True, options=set())
     use_rename_mirror: BoolProperty(
         name="リネーム時にミラー側の名前も変更",
         description='e.g., "Eye_L" with "Eye_R"',
         default=True,
+        options=set(),
     )
     # use_rename_lr: BoolProperty(
     #     name="リネーム時に左右の名前も変更",
     #     description='e.g., "Eye" with "Eye_L" and "Eye_R (WIP)"',
     #     default=True,
     # )
-    use_auto_x_mirror: BoolProperty(
-        name="Xミラー編集の自動設定 (WIP)",
-        default=True,
-    )
-    group_prefix: StringProperty(
-        name="Custom Group Prefix",
-        default="---",
-        update=callback_use_group_prefix,
-    )
-    use_group_prefix: EnumProperty(
-        name="Use Prefix",
-        items=[
-            ("NONE", "None", "No prefix will be used"),
-            ("AUTO", "Auto", "'---' または '===' でグループ化"),
-            ("CUSTOM", "Custom", "Use a custom prefix for grouping shape keys"),
-        ],
-        default="AUTO",
-        description="Automatically group shape keys that have a specific prefix in their names",
-        update=callback_use_group_prefix,
-    )
+    use_auto_x_mirror: BoolProperty(name="Xミラー編集の自動設定 (WIP)", default=True, options=set())
+
+    sidebar_factor: FloatProperty(name="Sidebar Size Factor", default=1.0, min=0.5, max=2.0, options=set())
 
     def draw(self, context):
         layout = self.layout
@@ -94,15 +71,6 @@ class MIO3SK_Preferences(AddonPreferences):
         split.label(text="Mirror")
         sub = split.column()
         sub.prop(prefs, "use_auto_x_mirror")
-
-        split = layout.split(factor=0.35)
-        split.alignment = "RIGHT"
-        split.label(text="Grouping")
-        col = split.column()
-        col.row(align=True).prop(prefs, "use_group_prefix", expand=True)
-        sub = col.column()
-        sub.enabled = prefs.use_group_prefix == "CUSTOM"
-        sub.prop(prefs, "group_prefix", text="Prefix")
 
 
 def register():

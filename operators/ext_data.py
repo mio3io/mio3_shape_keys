@@ -83,7 +83,7 @@ class OBJECT_OT_mio3sk_refresh_ext_data(Mio3SKGlobalOperator):
 
             if has_shape_key(obj):
                 check_update(context, obj)
-                refresh_ext_data(obj, True, True)
+                refresh_ext_data(context, obj, True, True)
                 refresh_filter_flag(context, obj)
                 refresh_composer_info(obj)
 

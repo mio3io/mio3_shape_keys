@@ -106,6 +106,7 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
         col.prop(ext, "is_group", text="Group")
         if ext.is_group:
             col.prop(ext, "group_color", text="グループカラー")
+            col.prop(ext, "is_group_hidden", text="グループ一覧で非表示")
 
     def layout_deform(self, box, obj, ext):
         col = box.column()

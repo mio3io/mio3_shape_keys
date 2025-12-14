@@ -153,7 +153,7 @@ def check_update_callback(context, obj, old_name, new_name):
         key_blocks = obj.data.shape_keys.key_blocks
         if old_mirror_name in key_blocks and new_mirror_name not in key_blocks:
             key_blocks[old_mirror_name].name = new_mirror_name
-            rename_ext_data(obj, old_mirror_name, new_mirror_name)
+            rename_ext_data(context, obj, old_mirror_name, new_mirror_name)
 
 def callback_name():
     context = bpy.context
@@ -169,7 +169,7 @@ def init_addon():
         try:
             if is_local(obj) and has_shape_key(obj):
                 check_update(context, obj)
-                refresh_ext_data(obj, True, True)
+                refresh_ext_data(context, obj, True, True)
                 refresh_filter_flag(context, obj)
         except:
             pass

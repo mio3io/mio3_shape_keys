@@ -67,7 +67,7 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
         for i in range(len(new_kb.data)):
             new_kb.data[i].co = active_kb.data[i].co.copy()
 
-        refresh_ext_data(obj, added=True)
+        refresh_ext_data(context, obj, added=True)
         move_shape_key_below(obj, key_blocks.find(active_kb.name), move_idx)
 
         active_ext = obj.mio3sk.ext_data.get(active_kb.name)
@@ -152,7 +152,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         selected_names = self.get_selected_names(obj, self.mode, sort=True)
 
         for name in selected_names:
-            new_kb_l, new_kb_r = self.create_shape_key(obj, key_blocks, name)
+            new_kb_l, new_kb_r = self.create_shape_key(context, obj, key_blocks, name)
             if new_kb_l is None or new_kb_r is None:
                 continue
 
@@ -189,7 +189,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         self.print_time()
         return {"FINISHED"}
 
-    def create_shape_key(self, obj: Object, key_blocks, name):
+    def create_shape_key(self, context, obj: Object, key_blocks, name):
         prop_o = obj.mio3sk
         active_kb: ShapeKey = key_blocks[name]
         active_ext = prop_o.ext_data.get(active_kb.name)
@@ -224,7 +224,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         new_kb_l.data.foreach_set("co", new_co_l.ravel())
         new_kb_r.data.foreach_set("co", new_co_r.ravel())
 
-        refresh_ext_data(obj, added=True)
+        refresh_ext_data(context, obj, added=True)
 
         ext_l = prop_o.ext_data.get(new_kb_l.name)
         ext_r = prop_o.ext_data.get(new_kb_r.name)
@@ -311,7 +311,7 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
         selected_names = self.get_selected_names(obj, self.mode, sort=True)
 
         for name in selected_names:
-            mirror_name = self.create_shape_key(obj, basis_kb, key_blocks, name)
+            mirror_name = self.create_shape_key(context, obj, basis_kb, key_blocks, name)
             if mirror_name is None:
                 continue
 
@@ -343,7 +343,7 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
         self.print_time()
         return {"FINISHED"}
 
-    def create_shape_key(self, obj: Object, basis_kb: ShapeKey, key_blocks, name):
+    def create_shape_key(self, context, obj: Object, basis_kb: ShapeKey, key_blocks, name):
         active_kb: ShapeKey = key_blocks[name]
         active_name = name
 
@@ -390,7 +390,7 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
         new_co = new_co.reshape(-1)
         new_kb.data.foreach_set("co", new_co)
 
-        refresh_ext_data(obj, added=True)  # extを作る
+        refresh_ext_data(context, obj, added=True)  # extを作る
 
         active_ext = obj.mio3sk.ext_data.get(active_kb.name)
         ext = obj.mio3sk.ext_data.get(new_kb.name)
@@ -436,7 +436,7 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
 
         created_pairs = []
         for base_name, l_name, r_name in lr_pairs:
-            merged_kb = self.create_merged_shape_key(obj, key_blocks, base_name, l_name, r_name)
+            merged_kb = self.create_merged_shape_key(context, obj, key_blocks, base_name, l_name, r_name)
             if merged_kb:
                 created_pairs.append((merged_kb.name, l_name, r_name))
 
@@ -492,7 +492,7 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
 
         return lr_pairs
 
-    def create_merged_shape_key(self, obj: Object, key_blocks, base_name, l_name, r_name):
+    def create_merged_shape_key(self, context, obj: Object, key_blocks, base_name, l_name, r_name):
         """L/Rシェイプキーから統合シェイプキーを作成"""
         l_kb = key_blocks.get(l_name)
         r_kb = key_blocks.get(r_name)
@@ -531,7 +531,7 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
 
         merged_kb.data.foreach_set("co", merged_co.ravel())
 
-        refresh_ext_data(obj, added=True)
+        refresh_ext_data(context, obj, added=True)
 
         return merged_kb
 

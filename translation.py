@@ -49,6 +49,7 @@ translation_dict = {
         ("Operator", "All UnAssign"): "すべて解除",
         ("*", "Preset Settings"): "プリセットの設定",
         ("Operator", "Active"): "アクティブ",
+        ("*", "Auto Grouping"): "自動グループ化",
 
         # Select
         ("*", "Select Keys"): "選択キー",

@@ -5,7 +5,7 @@ from mathutils import kdtree
 from bpy.props import BoolProperty, FloatProperty, StringProperty
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key
-from ..utils.ext_data import refresh_filter_flag, clear_filter
+from ..utils.ext_data import refresh_filter_flag, refresh_ui_select, clear_filter
 
 
 class MIO3SKSelectKeysBase(Mio3SKOperator):
@@ -327,7 +327,7 @@ class OBJECT_OT_mio3sk_select_group_toggle(MIO3SKSelectKeysBase):
                     cext = prop_o.ext_data.get(kb.name)
                     cext["select"] = active_ext.select
 
-        refresh_filter_flag(context, obj)
+        refresh_ui_select(obj)
         return {"FINISHED"}
 
 

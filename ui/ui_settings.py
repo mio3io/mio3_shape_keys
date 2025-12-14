@@ -15,6 +15,8 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
 
     def draw(self, context):
         layout = self.layout
+        prop_s = context.scene.mio3sk
+
         prefs = get_preferences()
 
         split = layout.split(factor=0.35)
@@ -40,12 +42,12 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
 
         split = layout.split(factor=0.35)
         split.alignment = "RIGHT"
-        split.label(text="Grouping")
+        split.label(text="Auto Grouping")
         col = split.column()
-        col.row(align=True).prop(prefs, "use_group_prefix", expand=True)
+        col.row(align=True).prop(prop_s, "use_group_prefix", expand=True)
         sub = col.column()
-        sub.enabled = prefs.use_group_prefix == "CUSTOM"
-        sub.prop(prefs, "group_prefix", text="Prefix")
+        sub.enabled = prop_s.use_group_prefix == "CUSTOM"
+        sub.prop(prop_s, "group_prefix", text="Prefix")
 
         layout.separator()
 

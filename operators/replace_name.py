@@ -78,8 +78,8 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
                 new_name = self.rep_name(key.name, rename_search, rename_replace, self.use_regex)
                 if key.name != new_name:
                     key.name = new_name
-                    rename_ext_data(ob, key.name, new_name)
-                    refresh_ext_data(ob, added=True, removed=True)
+                    rename_ext_data(context, ob, key.name, new_name)
+                    refresh_ext_data(context, ob, added=True, removed=True)
         return {"FINISHED"}
 
     @staticmethod

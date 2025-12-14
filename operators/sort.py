@@ -96,7 +96,7 @@ class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
 
         prop_w.sort_source = None
         check_update(context, obj)
-        refresh_ext_data(obj)
+        refresh_ext_data(context, obj)
         refresh_filter_flag(context, obj)
         self.print_time()
         return {"FINISHED"}

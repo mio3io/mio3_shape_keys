@@ -16,6 +16,18 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.operator("object.mio3sk_shape_key_add", text="New Shape from Mix", icon="ADD").from_mix = True
         layout.operator("object.mio3sk_join_keys", icon_value=icons.join_key)
 
+        layout.operator("object.mio3sk_duplicate", icon_value=icons.duplicate)
+        layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
+        # layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="シェイプキーの追加（コレクション）").sync = True
+        layout.separator()
+        layout.operator("object.mio3sk_generate_lr", icon_value=icons.split)
+        # layout.operator("object.mio3sk_generate_lr", text="左右のシェイプキーに分割", icon_value=icons.split).remove_source = True
+        layout.operator("object.mio3sk_merge_lr", icon_value=icons.join)
+        layout.operator("object.mio3sk_generate_opposite", icon_value=icons.opposite)
+
+        layout.separator()
+
+
         layout.separator()
         layout.operator("object.mio3sk_shape_transfer", text="Join from Mesh Shape", icon="FILE_NEW").method = "MESH"
         layout.operator("object.mio3sk_shape_transfer", text="Transfer Shape Key", icon="FILE_NEW").method = "KEY"
@@ -26,11 +38,12 @@ class MIO3SK_MT_main(bpy.types.Menu):
 
         layout.separator()
         layout.operator("object.mio3sk_replace")
+        # layout.separator()
+        # layout.menu("MIO3SK_MT_composer_menu", icon="LINKED")
         layout.separator()
-        layout.menu("MIO3SK_MT_composer_menu", icon="LINKED")
-        layout.separator()
-        layout.menu("MIO3SK_MT_import_menu", icon="IMPORT")
-        layout.menu("MIO3SK_MT_export_menu", icon="EXPORT")
+        layout.menu("MIO3SK_MT_io_menu", icon="IMPORT")
+        # layout.menu("MIO3SK_MT_import_menu", icon="IMPORT")
+        # layout.menu("MIO3SK_MT_export_menu", icon="EXPORT")
         layout.separator()
         layout.operator("object.mio3sk_modifier_apply", icon="MODIFIER")
         layout.separator()
@@ -59,6 +72,22 @@ class MIO3SK_MT_add(Menu):
         layout.operator("object.mio3sk_fill_keys")
         layout.separator()
         layout.operator("object.mio3sk_move_below", icon="TRIA_DOWN")
+        # layout.separator()
+        # layout.operator("object.mio3sk_move", icon="TRIA_UP_BAR", text="Move to Top").type = "TOP"
+        # layout.operator("object.mio3sk_move", icon="TRIA_DOWN_BAR", text="Move to Bottom").type = "BOTTOM"
+        # layout.separator()
+        # layout.operator("object.mio3sk_move_group", icon="TRIA_UP", text="グループを上に移動").type = "UP"
+        # layout.operator("object.mio3sk_move_group", icon="TRIA_DOWN", text="グループを下に移動").type = "DOWN"
+        # layout.separator()
+        # layout.operator("object.mio3sk_sort", icon_value=icons.sort)
+
+
+class MIO3SK_MT_move(Menu):
+    bl_label = "Add"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.mio3sk_move_below", icon="TRIA_DOWN")
         layout.separator()
         layout.operator("object.mio3sk_move", icon="TRIA_UP_BAR", text="Move to Top").type = "TOP"
         layout.operator("object.mio3sk_move", icon="TRIA_DOWN_BAR", text="Move to Bottom").type = "BOTTOM"
@@ -67,6 +96,7 @@ class MIO3SK_MT_add(Menu):
         layout.operator("object.mio3sk_move_group", icon="TRIA_DOWN", text="グループを下に移動").type = "DOWN"
         layout.separator()
         layout.operator("object.mio3sk_sort", icon_value=icons.sort)
+
 
 
 class MIO3SK_MT_add_preset(Menu):
@@ -133,6 +163,16 @@ class MIO3SK_MT_export_menu(Menu):
         layout.operator("object.mio3sk_output_shape_keys", icon="EXPORT")
         layout.operator("object.mio3sk_export_composer_rules", icon="EXPORT")
 
+class MIO3SK_MT_io_menu(Menu):
+    bl_label = "Import/Export"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.mio3sk_import_composer_rules", icon="IMPORT")
+        layout.separator()
+        layout.operator("object.mio3sk_output_shape_keys", icon="EXPORT")
+        layout.operator("object.mio3sk_export_composer_rules", icon="EXPORT")
+
 
 class MIO3SK_MT_tag_settings(Menu):
     bl_label = "Tag Settings"
@@ -180,7 +220,7 @@ class MIO3SK_PT_options_popover(Panel):
 
         layout.label(text="表示する機能")
         col = layout.column(align=True)
-        # col.prop(prop_o, "use_group", text="Groups")    
+        col.prop(prop_o, "use_group", text="Group")    
         col.prop(prop_o, "use_tags", text="Tags")
         col.prop(prop_o, "use_preset", text="Preset")
         col.prop(prop_o, "use_composer", text="Shape Sync")
@@ -226,6 +266,7 @@ classes = [
     MIO3SK_MT_main,
     MIO3SK_MT_add_preset,
     MIO3SK_MT_add,
+    MIO3SK_MT_move,
     MIO3SK_MT_select_keys_edit,
     MIO3SK_PT_options_popover,
     MIO3SK_MT_tag_settings,
@@ -233,6 +274,7 @@ classes = [
     MIO3SK_MT_composer_menu,
     MIO3SK_MT_import_menu,
     MIO3SK_MT_export_menu,
+    MIO3SK_MT_io_menu,
 ]
 
 

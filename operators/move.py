@@ -55,7 +55,7 @@ class OBJECT_OT_mio3sk_move(Mio3SKOperator):
                 bpy.ops.object.shape_key_move(type=self.type)
 
         check_update(context, obj)
-        refresh_ext_data(obj)
+        refresh_ext_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 
@@ -95,7 +95,7 @@ class OBJECT_OT_mio3sk_move_below(Mio3SKOperator):
             obj.active_shape_key_index = key_blocks.find(current_key_name)
 
         check_update(context, obj)
-        refresh_ext_data(obj)
+        refresh_ext_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 
@@ -152,7 +152,7 @@ class OBJECT_OT_mio3sk_move_group(Mio3SKOperator):
         obj.active_shape_key_index = key_blocks.find(current_key_name)
 
         check_update(context, obj)
-        refresh_ext_data(obj)
+        refresh_ext_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 

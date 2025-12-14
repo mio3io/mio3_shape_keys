@@ -41,6 +41,7 @@ icon_names = [
     "filter_reset",
     "preset",
     "toggle",
+    "groups",
 ]
 
 class IconSet:

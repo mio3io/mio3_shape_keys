@@ -53,12 +53,14 @@ class MIO3SK_PT_main(Mio3SKPanel):
         # シェイプキーヘッダー
         if shape_keys:
             key_block_len = len(shape_keys.key_blocks)
-            self.layout_list_header(layout, prop_o, key_block_len, prop_o.visible_len)
+            MIO3SK_PT_main.layout_list_header(layout, prop_o, key_block_len, prop_o.visible_len)
         else:
-            self.layout_list_header_nonkey(layout, prop_o)
+            MIO3SK_PT_main.layout_list_header_nonkey(layout, prop_o)
 
-        # シェイプキーリスト
-        self.layout_list(layout, obj, shape_keys, prop_o)
+        if prop_o.use_group:
+            MIO3SK_PT_main.layout_list_groups(layout, obj, shape_keys, prop_o, prop_s)
+        else:
+            MIO3SK_PT_main.layout_list_default(layout, obj, shape_keys, prop_o)
 
         if not active_shape_key:
             return
@@ -70,7 +72,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         # 選択キーボタン
         if prop_s.show_select:
             list_foot = layout.split(factor=0.72, align=True)
-            self.layout_select_keys(list_foot, prop_o, prop_o.selected_len)
+            MIO3SK_PT_main.layout_select_keys(list_foot, prop_o, prop_o.selected_len)
         else:
             list_foot = layout.split(factor=0.72, align=True)
             list_foot.row(align=True)
@@ -84,6 +86,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         sub.alignment = "RIGHT"
         # sub.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
         sub.separator(factor=0.5)
+
         sub.prop(obj, "show_only_shape_key", text="")
         sub.prop(obj, "use_shape_key_edit_mode", text="")
         sub.separator()
@@ -99,7 +102,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         sub = split.row(align=True)
         sub.scale_x = 1.1
         sub.scale_y = 1.1
-        # sub.prop(prop_o, "use_group", icon_value=icons.primary, icon_only=True)
+        sub.prop(prop_o, "use_group", icon_value=icons.groups, icon_only=True)
         sub.prop(prop_o, "use_tags", icon_value=icons.tag, icon_only=True)
         sub.prop(prop_o, "use_preset", icon_value=icons.preset, icon_only=True)
         sub.prop(prop_o, "use_composer", icon_value=icons.linked, icon_only=True)
@@ -119,13 +122,24 @@ class MIO3SK_PT_main(Mio3SKPanel):
 
         # タグ
         if prop_o.use_tags:
-            self.layout_tag(context, layout, prop_o, active_shape_key)
+            MIO3SK_PT_main.layout_tag(context, layout, prop_o, active_shape_key)
 
         # プリセット
         if prop_o.use_preset:
-            self.layout_preset(context, layout, prop_o)
+            MIO3SK_PT_main.layout_preset(context, layout, prop_o)
 
         # print("{:.5f}".format(time.time() - start_time))
+
+    @staticmethod
+    def layout_buttons_add(layout):
+        layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="").from_mix = False
+        layout.operator("object.mio3sk_add_below", text="", icon="PLUS")
+        layout.operator("object.mio3sk_shape_key_remove", icon="REMOVE", text="").mode = "ACTIVE"
+
+    @staticmethod
+    def layout_buttons_move(layout):
+        layout.operator("object.mio3sk_move", icon="TRIA_UP", text="").type = "UP"
+        layout.operator("object.mio3sk_move", icon="TRIA_DOWN", text="").type = "DOWN"
 
     # シェイプキーリストヘッダー
     @staticmethod
@@ -147,6 +161,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         sync = sub.row(align=True)
         sync.scale_x = 0.8
         sync.prop(prop_o, "syncs", text="")
+        sub.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
         sub.menu("MIO3SK_MT_main", icon="DOWNARROW_HLT", text="")
 
     # シェイプキーリストヘッダー（キーが1個も無い）
@@ -165,33 +180,58 @@ class MIO3SK_PT_main(Mio3SKPanel):
 
     # シェイプキーリスト
     @staticmethod
-    def layout_list(layout, obj, shape_keys, prop_o):
+    def layout_list_default(layout, obj, shape_keys, prop_o):
         row = layout.row()
-        row.template_list(
-            "MIO3SK_UL_shape_keys",
-            "",
-            shape_keys,
-            "key_blocks",
-            obj,
-            "active_shape_key_index",
-            rows=8,
-        )
+        row.template_list("MIO3SK_UL_shape_keys", "", shape_keys, "key_blocks", obj, "active_shape_key_index", rows=8)
         side_col = row.column(align=True)
 
-        side_col.operator("object.mio3sk_shape_key_add", icon="ADD", text="").from_mix = False
-        side_col.operator("object.mio3sk_add_below", text="", icon="PLUS")
-        side_col.operator("object.mio3sk_shape_key_remove", icon="REMOVE", text="").mode = "ACTIVE"
+        MIO3SK_PT_main.layout_buttons_add(side_col)
         side_col.separator()
-        side_col.menu("MIO3SK_MT_add", text="", icon="DOWNARROW_HLT")
+        MIO3SK_PT_main.layout_buttons_move(side_col)
+        side_col.separator()
+        side_col.menu("MIO3SK_MT_move", icon="DOWNARROW_HLT", text="")
 
-        # side_col.menu("MIO3SK_MT_main", icon="DOWNARROW_HLT", text="")
-        side_col.separator()
-        side_col.operator("object.mio3sk_move", icon="TRIA_UP", text="").type = "UP"
-        side_col.operator("object.mio3sk_move", icon="TRIA_DOWN", text="").type = "DOWN"
-        # side_col.separator()
-        # side_col.menu("MIO3SK_MT_move", icon="DOWNARROW_HLT", text="")
-        side_col.separator()
-        side_col.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
+    @staticmethod
+    def layout_list_groups(layout, obj, shape_keys, prop_o, prop_s):
+        split = layout.row()
+        row = split.row()
+        row.template_list("MIO3SK_UL_shape_keys", "", shape_keys, "key_blocks", obj, "active_shape_key_index", rows=8)
+
+        side_sub = split.column(align=True)
+        side_row = side_sub.row(align=True)
+        side_sub.scale_x = 1
+        MIO3SK_PT_main.layout_buttons_add(side_row)
+        side_sub.separator(factor=0.8)
+
+        group_items = [item for item in prop_o.ext_data if item.is_group and not item.is_group_hidden]
+        column = side_sub.column(align=True)
+        column.scale_x = 0.5
+
+        key_blocks = obj.data.shape_keys.key_blocks
+        def sort_key(g):
+            idx = key_blocks.find(g.name)
+            return idx if idx != -1 else 9999
+        sorted_groups = sorted(group_items, key=sort_key)
+
+        for i, group in enumerate(sorted_groups):
+            sub = column.row(align=True)
+            sub_color = sub.row(align=True)
+            sub_color.prop(group, "group_color", icon="COLOR", icon_only=True)
+            sub_color.scale_x = 0.5
+
+            r = sub.column(align=True)
+            r.alignment = "RIGHT"
+            r.operator(
+                "object.mio3sk_select_group",
+                translate=False,
+                text=group.name.strip("=-+*#~"),
+                depress=group.is_group_active,
+            ).group = group.name
+        side_sub.separator(factor=0.8)
+
+        side_row = side_sub.row(align=True)
+        MIO3SK_PT_main.layout_buttons_move(side_row)
+        side_row.menu("MIO3SK_MT_move", text="", icon="DOWNARROW_HLT")
 
     @staticmethod
     def layout_select_keys(list_foot, prop_o, selected_len):

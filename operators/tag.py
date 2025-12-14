@@ -208,7 +208,7 @@ class OBJECT_OT_mio3sk_assign_tag(Mio3SKOperator):
             for ext in prop_o.ext_data:
                 ext["select"] = False
 
-        refresh_ext_data(obj)
+        refresh_ext_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 

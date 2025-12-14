@@ -34,6 +34,7 @@ from .operators import genmesh
 from .operators import weight
 from .operators import select_verts
 from .operators import select_keys
+from .operators import group
 from .operators import tag
 from .operators import preset
 from .operators import ext_data
@@ -74,6 +75,7 @@ modules = [
     select_keys,
     apply_mask,
     apply_modifier,
+    group,
     tag,
     preset,
     ext_data,
