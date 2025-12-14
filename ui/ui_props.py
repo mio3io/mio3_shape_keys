@@ -88,7 +88,6 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             col = layout.column()
             row = col.row(align=True, heading="Active Shape Key")
             row.label(text="{} ({})".format(kb.name, active_shape_key_index), icon="SHAPEKEY_DATA")
-
             # col.prop(prop_o, "syncs")
             col.prop(kb, "value", text="Value")
             sub = col.column(align=True)
@@ -98,20 +97,15 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             sub.prop_search(kb, "vertex_group", obj, "vertex_groups", text="Vertex Group")
             sub.menu("MIO3SK_MT_prop_vertex_group", text="", icon="DOWNARROW_HLT")
             col.prop_search(kb, "relative_key", key, "key_blocks", text="Relative To")
-
         else:
             layout.prop(kb, "interpolation")
             row = layout.column()
             row.prop(key, "eval_time")
-        layout.use_property_decorate = False
-        layout.use_property_split = False
-
-        split = layout.split(factor=0.37)
-        split.label(text="")
-        col = split.column()
-        col.prop(ext, "is_group", text="Group")
+        
         col.prop(ext, "protect_delta")
-
+        col.prop(ext, "is_group", text="Group")
+        if ext.is_group:
+            col.prop(ext, "group_color", text="グループカラー")
 
     def layout_deform(self, box, obj, ext):
         col = box.column()

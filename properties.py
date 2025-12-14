@@ -143,7 +143,6 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         return items
 
     def callback_ext_data_select(self, context):
-        print("callback_ext_data_select")
         # obj = context.object
         # グループを一括切り替え
         if self.is_group:
@@ -234,6 +233,11 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
     )
 
 
+# フループ名
+class OBJECT_PG_mio3sk_group(PropertyGroup):
+    pass
+
+
 # オブジェクト
 class OBJECT_PG_mio3sk(PropertyGroup):
     def callback_is_global_select(self, context):
@@ -269,8 +273,18 @@ class OBJECT_PG_mio3sk(PropertyGroup):
         options=set(),
     )
 
+    # groups: CollectionProperty(
+    #     name="Groups",
+    #     type=OBJECT_PG_mio3sk_group,
+    #     options=set(),
+    # )
+    # ext_dirty: BoolProperty(name="Ext Dirty", default=False, options=set())
+    # filter_dirty: BoolProperty(name="Filter Dirty", default=False, options=set())
+    # group_dirty: BoolProperty(name="Groups Dirty", default=False, options=set())
+
     # 機能の使用
     syncs: PointerProperty(name="Collection Sync", type=Collection, update=callback_syncs, options=set())
+    use_group: BoolProperty(name="Use Groups", default=False, options=set())
     use_tags: BoolProperty(name="Use Tags", default=False, options=set())
     use_preset: BoolProperty(name="Use Preset", default=False, options=set())
     use_composer: BoolProperty(name="Use Composer", default=False, options=set())
@@ -415,6 +429,7 @@ classes = [
     OBJECT_PG_mio3sk_ext_data_source_key,
     OBJECT_PG_mio3sk_key,
     OBJECT_PG_mio3sk_ext_data,
+    OBJECT_PG_mio3sk_group,
     OBJECT_PG_mio3sk,
     SCENE_PG_mio3sk,
     WM_PG_mio3sk_string,

@@ -155,12 +155,12 @@ def check_update_callback(context, obj, old_name, new_name):
             key_blocks[old_mirror_name].name = new_mirror_name
             rename_ext_data(obj, old_mirror_name, new_mirror_name)
 
-
 def callback_name():
     context = bpy.context
-    if context.object:
-        check_update(context, context.object, callback=check_update_callback)
-
+    obj = context.object
+    if obj:
+        check_update(context, obj, callback=check_update_callback)
+        refresh_filter_flag(context, obj)
 
 def init_addon():
     debug_function("Mio3 ShapeKeys: Init Addon")

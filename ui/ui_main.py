@@ -37,7 +37,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
             layout.label(text="{} Keys".format(len(shape_keys.key_blocks) - 1))
 
     def draw(self, context):
-        start_time = time.time()
+        # start_time = time.time()
 
         layout = self.layout
         obj = context.object
@@ -45,7 +45,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         key_block_len = 0
         prop_o = obj.mio3sk
         prop_s = context.scene.mio3sk
-        prop_w = context.window_manager.mio3sk
+        # prop_w = context.window_manager.mio3sk
 
         shape_keys = obj.data.shape_keys
         active_shape_key = obj.active_shape_key
@@ -99,6 +99,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         sub = split.row(align=True)
         sub.scale_x = 1.1
         sub.scale_y = 1.1
+        # sub.prop(prop_o, "use_group", icon_value=icons.primary, icon_only=True)
         sub.prop(prop_o, "use_tags", icon_value=icons.tag, icon_only=True)
         sub.prop(prop_o, "use_preset", icon_value=icons.preset, icon_only=True)
         sub.prop(prop_o, "use_composer", icon_value=icons.linked, icon_only=True)
@@ -358,11 +359,12 @@ class MIO3SK_UL_shape_keys(UIList):
             if ext:
                 icon_value = self.get_icon_for_key_block(key_block, active_ext, ext)
                 if index > 0:
+                    is_group = ext.is_group
                     row_sub = row_name.row()
-                    row_sub.prop(ext.key_label, "color", icon="COLOR", icon_only=True)
+                    row_sub.prop(ext, "group_color", icon="COLOR", icon_only=True)
+                    # row_sub.prop(ext.key_label, "color", icon="COLOR", icon_only=True)
                     row_sub.scale_x = 0.25
                     row_name.separator(factor=1)
-                    is_group = ext.is_group
                     if is_group:
                         # グループシェイプキー
                         if prop_s.show_select:
@@ -416,9 +418,6 @@ class MIO3SK_UL_shape_keys(UIList):
             else:
                 sub.prop(key_block, "value", text="")
                 sub.separator(factor=0.25)
-                # sub.operator("object.mio3sk_shape_key_toggle", text="", icon_value=icons.toggle, emboss=False).key = (
-                #     key_block.name
-                # )
 
             row.separator(factor=0.25)
 

@@ -3,7 +3,7 @@ from bpy.types import Context, Object, ShapeKey
 from fnmatch import fnmatch
 from ..globals import get_preferences
 from ..utils.utils import is_close_color
-from ..globals import TAG_COLOR_DEFAULT
+from ..globals import LABEL_COLOR_DEFAULT, TAG_COLOR_DEFAULT
 from .utils import is_local, has_shape_key
 from . import debug_function
 
@@ -24,7 +24,7 @@ def refresh_store_names(obj: Object, latest_shape_key_names) -> list[str]:
 
 # 依存データを更新する (検知できなかった場合は手動で更新)
 def check_update(context: Context, obj: Object, sync=True, callback=None):
-    start_time = time.time()
+    # start_time = time.time()
 
     if not has_shape_key(obj):
         return None
@@ -50,8 +50,8 @@ def check_update(context: Context, obj: Object, sync=True, callback=None):
         if set(v[0] for v in rename_keys) == set(v[1] for v in rename_keys):
             return latest_key_names  # 移動のみ
 
-        prefs = get_preferences()
-        prop_o = obj.mio3sk
+        # prefs = get_preferences()
+        # prop_o = obj.mio3sk
 
         for old_name, new_name in rename_keys:
             # debug_function("[🍇RENAME] <{}> Shapekey {} -> {}", [obj.name, old_name, new_name])
@@ -85,8 +85,9 @@ def check_update(context: Context, obj: Object, sync=True, callback=None):
 
 # 追加・削除の拡張データを更新
 def refresh_ext_data(obj: Object, added=False, removed=False):
-    # debug_function("  🐟refresh_ext_data <{}>", obj.name)
+    # debug_function("  🐡refresh_ext_data <{}>", obj.name)
     prop_o = obj.mio3sk
+    ext_data = prop_o.ext_data
     prefs = get_preferences()
     latest_key_names = obj.data.shape_keys.key_blocks.keys()
 
@@ -104,15 +105,35 @@ def refresh_ext_data(obj: Object, added=False, removed=False):
                 item = prop_o.ext_data.add()
                 item.name = name
 
-    # 拡張データのタグの更新
+    # 拡張データの更新
     prefix = ("---", "===") if prefs.use_group_prefix == "AUTO" else prefs.group_prefix
-    for ext in prop_o.ext_data:
+    key_blocks = obj.data.shape_keys.key_blocks
+    current_color = LABEL_COLOR_DEFAULT
+    for kb in key_blocks[1:]:
+        if (ext := ext_data.get(kb.name)) is None:
+            continue
+
         if prefs.use_group_prefix != "NONE":
             ext["is_group"] = ext.name.startswith(prefix)
+
+        if ext.is_group:
+            current_color = ext.group_color
+            ext["group_len"] = 0
+        else:
+            ext["group_color"] = current_color
 
         for i in range(len(ext.tags) - 1, -1, -1):
             if ext.tags[i].name not in prop_o.tag_list:
                 ext.tags.remove(i)
+
+    len_ext = len(ext_data)
+    prop_o.ext_data.foreach_get("group_len", [0] * len_ext)
+    groups = get_key_groups(obj)
+    for i, group in enumerate(groups):
+        if len(group) > 1:
+            ext = prop_o.ext_data.get(group[0].name)
+            if ext and ext.is_group:
+                ext["group_len"] = len(group) - 1
 
 
 # 拡張プロパティで使用している名前の更新 拡張データ名、ソース元、ブレンドソース、プリセット
@@ -146,91 +167,102 @@ def refresh_composer_info(obj: Object):
     prop_o.composer_global_enabled = any(key.composer_enabled for key in prop_o.ext_data)
 
 
-# UI用のキャッシュデータ更新
-def refresh_ui_info(obj: Object):
-    # debug_function("  🍊refresh_ui_info <{}>", obj.name)
-    prop_o = obj.mio3sk
-    selected_len, visible_len = 0, 0
-    for ext in prop_o.ext_data:
-        if ext.select:
-            selected_len += 1
-        if not ext.filter_flag:
-            visible_len += 1
-        if ext.is_group:
-            ext.group_len = 0
-    prop_o.visible_len = visible_len
-    prop_o.selected_len = selected_len
-
-    groups = get_key_groups(obj)
-    for i, group in enumerate(groups):
-        if len(group) > 1:
-            ext = prop_o.ext_data.get(group[0].name)
-            if ext and ext.is_group:
-                ext.group_len = len(group) - 1
-
+def update_groups(obj: Object):
+    pass
 
 # リストに表示するかどうかのフラグを更新
 # tag.active, tag:add, tag:remove, ANR/OR
 # グループ実装で追加するもの → シェイプキーリネーム・削除
 def refresh_filter_flag(context: Context, obj: Object):
+    # start_time = time.time()
     # debug_function("  refresh_filter_flag: {}", obj.name)
     if not has_shape_key(obj):
         return None
     shape_keys = obj.data.shape_keys
-    basis_kb = shape_keys.reference_key
+    key_blocks = shape_keys.key_blocks
     prop_o = obj.mio3sk
     prop_w = context.window_manager.mio3sk
 
-    ext_dict = {ext.name: ext for ext in prop_o.ext_data}
-    name_filter = prop_o.filter_name.lower() if prop_o.filter_name else None
-    active_tags = {tag.name for tag in prop_o.tag_list if tag.active}
+    ext_data = prop_o.ext_data
+    len_ext = len(ext_data)
+
+    ext_data.foreach_set("filter_flag", (False,) * len_ext)
+
+    basis_name = shape_keys.reference_key.name
+
+    filter_select = prop_o.filter_select
+    name_filter = prop_o.filter_name
+    name_filter = name_filter.lower() if name_filter else None
+
+    active_tags = None
+    if prop_o.tag_list:
+        active_tags = [t.name for t in prop_o.tag_list if t.active]
+        if not active_tags:
+            active_tags = None
+
     filter_type = prop_w.tag_filter_type
     filter_invert = prop_w.tag_filter_invert
 
-    for ext in prop_o.ext_data:
-        ext.filter_flag = False
+    ext_by_name = {ext.name: ext for ext in ext_data}
 
-    # グループフィルター
+    hide_names = set()
     current_hide = False
-    for kb in shape_keys.key_blocks:
-        if kb.name in ext_dict:
-            ext = ext_dict[kb.name]
-            if ext.is_group:
-                current_hide = ext.is_group_close
-            elif current_hide:
-                ext.filter_flag = True
+    for kb in key_blocks[1:]:
+        ext = ext_by_name.get(kb.name)
+        if not ext:
+            continue
+        if ext.is_group:
+            current_hide = ext.is_group_close
+        elif current_hide:
+            hide_names.add(ext.name)
 
-    for ext in prop_o.ext_data:
-        if ext.name == basis_kb.name or ext.filter_flag:
+    for ext in ext_data:
+        name = ext.name
+        if name == basis_name:
+            continue
+        if name in hide_names:
+            ext.filter_flag = True
             continue
 
         # 選択フィルター
-        if prop_o.filter_select and not ext.select:
+        if filter_select and not ext.select:
             ext.filter_flag = True
             continue
 
         # 名前フィルター
-        if name_filter and not fnmatch(ext.name.lower(), "*{}*".format(name_filter)):
+        if name_filter and (name_filter not in name.lower()):
             ext.filter_flag = True
             continue
 
         # タグフィルター
         if active_tags:
-            ext_tags = set(ext.tags.keys())
-            tag_filter_flag = False
+            tags = ext.tags
             if filter_type == "AND":
-                if not active_tags.issubset(ext_tags):
-                    tag_filter_flag = True
+                ok = True
+                for t in active_tags:
+                    if (t not in tags):
+                        ok = False
+                        break
             else:
-                if not bool(active_tags & ext_tags):
-                    tag_filter_flag = True
+                ok = False
+                for t in active_tags:
+                    if (t in tags):
+                        ok = True
+                        break
 
+            flag = (not ok)
             if filter_invert:
-                tag_filter_flag = not tag_filter_flag
+                flag = not flag
+            ext.filter_flag = flag
 
-            ext.filter_flag = tag_filter_flag
+    select_data = [False] * len_ext
+    filter_data = [False] * len_ext
+    prop_o.ext_data.foreach_get("select", select_data)
+    prop_o.ext_data.foreach_get("filter_flag", filter_data)
+    prop_o.selected_len = sum(select_data)
+    prop_o.visible_len  = len_ext - sum(filter_data)
 
-    refresh_ui_info(obj)
+    # print("  🍋 {:.5f} refresh_filter_flag".format(time.time() - start_time))
 
 
 def create_composer_rule(ext, composer_type, name, value=1.0):

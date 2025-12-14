@@ -180,6 +180,7 @@ class MIO3SK_PT_options_popover(Panel):
 
         layout.label(text="表示する機能")
         col = layout.column(align=True)
+        # col.prop(prop_o, "use_group", text="Groups")    
         col.prop(prop_o, "use_tags", text="Tags")
         col.prop(prop_o, "use_preset", text="Preset")
         col.prop(prop_o, "use_composer", text="Shape Sync")
