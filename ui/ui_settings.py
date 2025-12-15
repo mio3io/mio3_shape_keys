@@ -24,15 +24,12 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
         split.label(text="Collection Sync")
         sub = split.column()
         sub.prop(prefs, "use_sync_active_shapekey")
-        # ToDo: 不具合修正まで一旦コメントアウト
-        # sub.prop(prefs, "use_sync_name")
 
         split = layout.split(factor=0.35)
         split.alignment = "RIGHT"
         split.label(text="Rename")
         sub = split.column()
         sub.prop(prefs, "use_rename_mirror")
-        # sub.prop(prefs, "use_rename_lr")
 
         split = layout.split(factor=0.35)
         split.alignment = "RIGHT"

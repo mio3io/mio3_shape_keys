@@ -28,19 +28,14 @@ class MIO3SK_Preferences(AddonPreferences):
     category: StringProperty(name="Tab", default="Mio3", update=update_panel, options=set())
 
     use_sync_active_shapekey: BoolProperty(name="Active Shape Key", default=True, options=set())
-    use_sync_name: BoolProperty(name="Shape Key Name", default=True, options=set())
     use_rename_mirror: BoolProperty(
         name="リネーム時にミラー側の名前も変更",
         description='e.g., "Eye_L" with "Eye_R"',
         default=True,
         options=set(),
     )
-    # use_rename_lr: BoolProperty(
-    #     name="リネーム時に左右の名前も変更",
-    #     description='e.g., "Eye" with "Eye_L" and "Eye_R (WIP)"',
-    #     default=True,
-    # )
     use_auto_x_mirror: BoolProperty(name="Xミラー編集の自動設定 (WIP)", default=True, options=set())
+    sidebar_factor: FloatProperty(name="Sidebar Size Factor", default=1.0, min=0.5, max=2.0, options=set())
 
     def draw(self, context):
         layout = self.layout
@@ -56,7 +51,6 @@ class MIO3SK_Preferences(AddonPreferences):
         split.label(text="Collection Sync")
         sub = split.column()
         sub.prop(prefs, "use_sync_active_shapekey")
-        sub.prop(prefs, "use_sync_name")
 
         split = layout.split(factor=0.35)
         split.alignment = "RIGHT"

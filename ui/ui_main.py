@@ -403,7 +403,6 @@ class MIO3SK_UL_shape_keys(UIList):
                     is_group = ext.is_group
                     row_sub = row_name.row()
                     row_sub.prop(ext, "group_color", icon="COLOR", icon_only=True)
-                    # row_sub.prop(ext.key_label, "color", icon="COLOR", icon_only=True)
                     row_sub.scale_x = 0.25
                     row_name.separator(factor=1)
                     if is_group:

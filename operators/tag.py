@@ -100,13 +100,6 @@ class OBJECT_OT_mio3sk_tag_list_remove(Mio3SKGlobalOperator):
             for i in range(len(ext.tags) - 1, -1, -1):
                 if ext.tags[i].name == tag_name:
                     ext.tags.remove(i)
-            current_tag = find_current_tag(ext, prop_o.tag_list)
-            if current_tag:
-                ext.key_label.name = current_tag.name
-                ext.key_label.color = current_tag.color
-            else:
-                ext.key_label.name = ""
-                ext.key_label.color = LABEL_COLOR_DEFAULT
 
         refresh_filter_flag(context, obj)
         obj.data.update()
@@ -187,19 +180,9 @@ class OBJECT_OT_mio3sk_assign_tag(Mio3SKOperator):
                 for i in range(len(ext.tags) - 1, -1, -1):
                     if ext.tags[i].name == self.tag:
                         ext.tags.remove(i)
-                current_tag = find_current_tag(ext, prop_o.tag_list)
-                if current_tag:
-                    ext.key_label.name = current_tag.name
-                    ext.key_label.color = current_tag.color
-                else:
-                    ext.key_label.name = ""
-                    ext.key_label.color = LABEL_COLOR_DEFAULT
 
         elif self.method in {"ADD", "BATCH_ADD"}:
             for ext in selected_exts:
-                active_tag = prop_o.tag_list[self.tag]
-                ext.key_label.name = self.tag
-                ext.key_label.color = active_tag.color
                 if self.tag not in ext.tags:
                     new_item = ext.tags.add()
                     new_item.name = self.tag
@@ -246,8 +229,6 @@ class OBJECT_OT_mio3sk_clear_tag(Mio3SKGlobalOperator):
 
         for ext in selected_exts:
             ext.tags.clear()
-            ext.key_label.name = ""
-            ext.key_label.color = (0.1, 0.1, 0.1)
 
         self.report({"INFO"}, "{}個のシェイプキーのタグを初期化しました".format(len(selected_exts)))
         refresh_filter_flag(context, obj)

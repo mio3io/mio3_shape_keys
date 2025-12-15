@@ -70,17 +70,6 @@ class OBJECT_OT_mio3sk_refresh_ext_data(Mio3SKGlobalOperator):
         cleanup_ext_data(context, context.active_object)
 
         for obj in bpy.data.objects:
-            prop_o = obj.mio3sk
-            for ext in obj.mio3sk.ext_data:
-                if is_close_color(ext.key_label.color, LABEL_COLOR_DEFAULT):
-                    current_tag = find_current_tag(ext, prop_o.tag_list)
-                    if current_tag:
-                        ext.key_label.name = current_tag.name
-                        ext.key_label.color = current_tag.color
-                    else:
-                        ext.key_label.name = ""
-                        ext.key_label.color = LABEL_COLOR_DEFAULT
-
             if has_shape_key(obj):
                 check_update(context, obj)
                 refresh_ext_data(context, obj, True, True)

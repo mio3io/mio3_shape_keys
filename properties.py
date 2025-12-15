@@ -64,12 +64,6 @@ class OBJECT_PG_mio3sk_ext_data_setting_tag(PropertyGroup):
     def callback_update_tag_active(self, context):
         refresh_filter_flag(context, context.object)
 
-    def callback_color(self, context):
-        obj = context.object
-        for ext in obj.mio3sk.ext_data:
-            if ext.key_label.name == self.name:
-                ext.key_label["color"] = self.color
-
     def get_tag_name(self):
         return self.get("name", "")
 
@@ -82,8 +76,6 @@ class OBJECT_PG_mio3sk_ext_data_setting_tag(PropertyGroup):
     def update_tag_name(self, context):
         obj = context.object
         for ext in obj.mio3sk.ext_data:
-            if ext.key_label.name == self.old_name:
-                ext.key_label["name"] = self.name
             for tag in ext.tags:
                 if tag.name == self.old_name:
                     tag["name"] = self.name
@@ -105,7 +97,6 @@ class OBJECT_PG_mio3sk_ext_data_setting_tag(PropertyGroup):
         size=3,
         min=0.0,
         max=1.0,
-        update=callback_color,
         options=set(),
     )
 
@@ -174,12 +165,6 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         name="Select\n[Ctrl] Group Select",
         default=False,
         update=callback_ext_data_select,
-        options=set(),
-    )
-    # ToDo: 削除
-    key_label: PointerProperty(
-        name="Main Tag",
-        type=OBJECT_PG_mio3sk_ext_data_tag,
         options=set(),
     )
     label: StringProperty(name="Group Name", options=set())

@@ -232,8 +232,6 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
                         for base_tag in base_ext.tags:
                             item = ext.tags.add()
                             item.name = base_tag.name
-                        ext.key_label.name = base_ext.key_label.name
-                        ext.key_label.color = base_ext.key_label.color
 
         if self.import_presets:
             prop_o.preset_list.clear()
