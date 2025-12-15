@@ -345,6 +345,7 @@ def clear_filter(context: Context, obj: Object):
 
     for ext in prop_o.ext_data:
         ext["is_group_close"] = False  # グループ開閉
+        ext["is_group_active"] = False  # グループアクティブ
 
     for tag in prop_o.tag_list:
         tag["active"] = False  # タグ
