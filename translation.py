@@ -79,6 +79,7 @@ translation_dict = {
         ("*", "Perfect Sync"): "パーフェクトシンク",
         ("Operator", "Fill Shape Keys"): "不足するシェイプキーを補完",
         ("*", "Fill shapekeys from collection"): "コレクションから不足しているシェイプキーを埋める",
+        ("*", "Apply Shapes"): "現在のシェイプを適用",
 
         # Batch Rename
         ("*", "Regular expression syntax is incorrect"): "正規表現が正しくありません",

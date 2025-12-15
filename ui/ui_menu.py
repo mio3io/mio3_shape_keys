@@ -34,7 +34,6 @@ class MIO3SK_MT_main(bpy.types.Menu):
 
         layout.separator()
         layout.operator("object.mio3sk_shape_key_remove", text="Delete All", icon="X").mode = "ALL"
-        layout.operator("object.mio3sk_remove_apply_mix", text="Apply All", icon="X")
 
         layout.separator()
         layout.operator("object.mio3sk_replace")

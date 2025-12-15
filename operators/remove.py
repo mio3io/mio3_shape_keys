@@ -1,5 +1,5 @@
 import bpy
-from bpy.props import EnumProperty
+from bpy.props import BoolProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.ext_data import check_update
@@ -21,6 +21,12 @@ class OBJECT_OT_mio3sk_remove(Mio3SKOperator):
         ],
         options={"SKIP_SAVE"},
     )
+    apply_mix: BoolProperty(
+        name="Apply Shapes",
+        description="Apply the current shape key mix before removing",
+        default=False,
+        options={"SKIP_SAVE"},
+    )
 
     @classmethod
     def poll(cls, context):
@@ -28,7 +34,7 @@ class OBJECT_OT_mio3sk_remove(Mio3SKOperator):
         return obj is not None and has_shape_key(obj) and obj.mode == "OBJECT"
 
     def invoke(self, context, event):
-        if self.mode == "SELECTED":
+        if self.mode != "ACTIVE":
             return context.window_manager.invoke_props_dialog(self)
         return self.execute(context)
         
@@ -47,17 +53,20 @@ class OBJECT_OT_mio3sk_remove(Mio3SKOperator):
             )
         col = layout.column()
         col.prop(self, "mode", expand=True)
+        if self.mode == "ALL":
+            col.prop(self, "apply_mix")
 
     def execute(self, context):
         obj = context.active_object
         if not is_local_obj(obj) or not has_shape_key(obj):
             return {"CANCELLED"}
 
-        if self.mode == "ALL":
-            try:
-                bpy.ops.object.shape_key_remove(all=True)
-            except Exception as e:
-                self.report({"ERROR"}, str(e))
+        if self.mode == "ACTIVE":
+            active_kb = obj.active_shape_key
+            if active_kb.lock_shape:
+                self.report({"ERROR"}, "Active Shape Key is Locked")
+                return {"CANCELLED"}
+            obj.shape_key_remove(active_kb)
         elif self.mode == "SELECTED":
             key_blocks = obj.data.shape_keys.key_blocks
             selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
@@ -66,40 +75,13 @@ class OBJECT_OT_mio3sk_remove(Mio3SKOperator):
                     continue
                 obj.shape_key_remove(kb)
         else:
-            active_kb = obj.active_shape_key
-            if active_kb.lock_shape:
-                self.report({"ERROR"}, "Active Shape Key is Locked")
-                return {"CANCELLED"}
-            obj.shape_key_remove(active_kb)
-
-        if not obj.data.shape_keys:
-            obj.mio3sk.ext_data.clear()
-            obj.mio3sk.store_names.clear()
-
-        check_update(context, obj)
-        return {"FINISHED"}
-
-
-class OBJECT_OT_mio3sk_remove_apply_mix(Mio3SKOperator):
-    bl_idname = "object.mio3sk_remove_apply_mix"
-    bl_label = "Remove Shape Key"
-    bl_description = "Remove shape key from the object"
-    bl_options = {"REGISTER", "UNDO"}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.active_object
-        return obj is not None and has_shape_key(obj) and obj.mode == "OBJECT"
-
-    def execute(self, context):
-        obj = context.active_object
-        if not is_local_obj(obj) or not has_shape_key(obj):
-            return {"CANCELLED"}
-
-        try:
-            bpy.ops.object.shape_key_remove(all=True, apply_mix=True)
-        except Exception as e:
-            self.report({"ERROR"}, str(e))
+            try:
+                if self.apply_mix:
+                    bpy.ops.object.shape_key_remove(all=True, apply_mix=True)
+                else:
+                    bpy.ops.object.shape_key_remove(all=True)
+            except Exception as e:
+                self.report({"ERROR"}, str(e))
 
         if not obj.data.shape_keys:
             obj.mio3sk.ext_data.clear()
@@ -111,7 +93,6 @@ class OBJECT_OT_mio3sk_remove_apply_mix(Mio3SKOperator):
 
 classes = [
     OBJECT_OT_mio3sk_remove,
-    OBJECT_OT_mio3sk_remove_apply_mix,
 ]
 
 
