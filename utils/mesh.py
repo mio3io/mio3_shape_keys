@@ -43,23 +43,23 @@ def find_x_mirror_vert_pairs(bm, selected_verts):
     return mirror_verts
 
 
-def create_selection_mask(obj, is_edit, mirror=True):
-    """選択された頂点のマスクを作成"""
-    v_len = len(obj.data.vertices)
-    bm = bmesh.new()
-    bm.from_mesh(obj.data)
-    bm.verts.ensure_lookup_table()
-    if is_edit:
-        selected_verts = {v for v in bm.verts if v.select}
-        if mirror and obj.use_mesh_mirror_x and selected_verts:
-            selected_verts.update(find_x_mirror_verts(bm, selected_verts))
-        selected_verts = [v.index for v in selected_verts]
-        if not selected_verts:
-            selected_mask = np.ones(v_len, dtype=bool)
-        else:
-            selected_mask = np.zeros(v_len, dtype=bool)
-            selected_mask[selected_verts] = True
-    else:
-        selected_mask = np.ones(v_len, dtype=bool)
-    bm.free()
-    return selected_mask
+# def create_selection_mask(obj, is_edit, mirror=True):
+#     """選択された頂点のマスクを作成"""
+#     v_len = len(obj.data.vertices)
+#     bm = bmesh.new()
+#     bm.from_mesh(obj.data)
+#     bm.verts.ensure_lookup_table()
+#     if is_edit:
+#         selected_verts = {v for v in bm.verts if v.select}
+#         if mirror and obj.use_mesh_mirror_x and selected_verts:
+#             selected_verts.update(find_x_mirror_verts(bm, selected_verts))
+#         selected_verts = [v.index for v in selected_verts]
+#         if not selected_verts:
+#             selected_mask = np.ones(v_len, dtype=bool)
+#         else:
+#             selected_mask = np.zeros(v_len, dtype=bool)
+#             selected_mask[selected_verts] = True
+#     else:
+#         selected_mask = np.ones(v_len, dtype=bool)
+#     bm.free()
+#     return selected_mask

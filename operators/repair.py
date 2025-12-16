@@ -1,5 +1,6 @@
 import bpy
 import numpy as np
+from bpy.types import ShapeKey
 from bpy.props import BoolProperty, FloatProperty, StringProperty
 from ..classes.operator import Mio3SKOperator
 
@@ -12,7 +13,7 @@ class MESH_OT_mio3sk_repair(Mio3SKOperator):
 
     source: StringProperty(name="Shape")
     blend: FloatProperty(name="Blend", default=-1, min=-2, max=2, step=10)
-    protect_delta: BoolProperty(name="差分のある頂点のみ", default=True)
+    moved_only: BoolProperty(name="差分のある頂点のみ", default=True)
 
     @classmethod
     def poll(cls, context):
@@ -24,6 +25,7 @@ class MESH_OT_mio3sk_repair(Mio3SKOperator):
         return self.execute(context)
 
     def execute(self, context):
+        self.start_time()
         obj = context.active_object
         active_kb = obj.active_shape_key
         source_kb = obj.data.shape_keys.key_blocks.get(self.source)
@@ -31,36 +33,37 @@ class MESH_OT_mio3sk_repair(Mio3SKOperator):
         if source_kb is None:
             return {"FINISHED"}
 
-        if obj.mode == "EDIT":
-            try:
-                bpy.ops.mesh.blend_from_shape(shape=self.source, blend=self.blend, add=True)
-            except:
-                pass
-            return {"FINISHED"}
-
-        v_len = len(active_kb.data)
-        co_act_raw = np.empty(v_len * 3, dtype=np.float32)
-        co_src_raw = np.empty(v_len * 3, dtype=np.float32)
-        co_bas_raw = np.empty(v_len * 3, dtype=np.float32)
-
-        active_kb.data.foreach_get("co", co_act_raw)
-        source_kb.data.foreach_get("co", co_src_raw)
-        basis_kb.data.foreach_get("co", co_bas_raw)
-
-        act_co = co_act_raw.reshape(-1, 3)
-        src_co = co_src_raw.reshape(-1, 3)
-        bas_co = co_bas_raw.reshape(-1, 3)
-
-        if self.protect_delta:
-            moved = np.any(np.abs(act_co - bas_co) > 1e-5, axis=1)
-            if moved.any():
-                act_co[moved] += (src_co[moved] - bas_co[moved]) * self.blend
-        else:
-            act_co += (src_co - bas_co) * self.blend
-
-        active_kb.data.foreach_set("co", act_co.ravel())
+        self.repair(basis_kb, source_kb, active_kb, self.blend, self.moved_only)
         obj.data.update()
+
+        self.print_time()
         return {"FINISHED"}
+
+    @staticmethod
+    def repair(basis_kb: ShapeKey, source_kb: ShapeKey, target_kb: ShapeKey, blend, moved_only):
+        v_len = len(target_kb.data)
+        bas_co_raw = np.empty(v_len * 3, dtype=np.float32)
+        act_co_raw = np.empty(v_len * 3, dtype=np.float32)
+        src_co_raw = np.empty(v_len * 3, dtype=np.float32)
+
+        basis_kb.data.foreach_get("co", bas_co_raw)
+        target_kb.data.foreach_get("co", act_co_raw)
+        source_kb.data.foreach_get("co", src_co_raw)
+
+        delta_co_raw = src_co_raw - bas_co_raw
+
+        bas_co = bas_co_raw.reshape(-1, 3)
+        act_co = act_co_raw.reshape(-1, 3)
+        delta_co = delta_co_raw.reshape(-1, 3)
+
+        if moved_only:
+            moved = np.any(np.abs(act_co - bas_co) > 1e-6, axis=1)
+            if moved.any():
+                act_co[moved] += delta_co[moved] * blend
+        else:
+            act_co += delta_co * blend
+
+        target_kb.data.foreach_set("co", act_co_raw)
 
     def draw(self, context):
         obj = context.active_object
@@ -76,7 +79,7 @@ class MESH_OT_mio3sk_repair(Mio3SKOperator):
         split = layout.split(factor=0.35)
         split.label(text="")
         row = split.row(align=True)
-        row.prop(self, "protect_delta", text="差分のある頂点のみ")
+        row.prop(self, "moved_only", text="動きのある頂点のみ")
 
 
 classes = [

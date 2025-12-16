@@ -215,7 +215,7 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
     )
     composer_source_mask: StringProperty(name="Composer Mask")
     protect_delta: BoolProperty(
-        name="Basis適用時にデルタを保護する",
+        name="Basis適用時に表情を保護する",
         description="まばたきやウィンク、△くちなど、Basis適用で崩れるキーに設定する",
         default=False,
         options=set(),

@@ -1,10 +1,10 @@
 import bpy
 import bmesh
 import numpy as np
+from bpy.types import ShapeKey
 from bpy.props import BoolProperty
 from ..classes.operator import Mio3SKOperator
-from ..utils.utils import valid_shape_key
-from ..utils.mesh import create_selection_mask
+from ..utils.utils import valid_shape_key, is_local_obj
 
 
 class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
@@ -13,10 +13,9 @@ class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
     bl_description = "Apply to Basis"
     bl_options = {"REGISTER", "UNDO"}
 
-    use_protect_locked: BoolProperty(name="ロックされているキーを保護")
     use_protect_delta: BoolProperty(
-        name="デルタ保護を有効",
-        description="デルタ保護を設定している「まばたき」などのキーに影響を与えないようにします",
+        name="表情の保護を有効",
+        description="表情の保護を設定している「まばたき」などのキーに影響を与えないようにします",
     )
 
     @classmethod
@@ -26,16 +25,12 @@ class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
 
     def draw(self, context):
         col = self.layout.column()
-        col.prop(self, "use_protect_locked")
         col.prop(self, "use_protect_delta")
 
     def invoke(self, context, event):
         obj = context.active_object
-        if any(ext for ext in obj.mio3sk.ext_data if ext.protect_delta):
-            self.use_protect_delta = True
-            return context.window_manager.invoke_props_dialog(self)
-        elif any(kb.lock_shape for kb in obj.data.shape_keys.key_blocks):
-            self.use_protect_locked = True
+        use_protect_delta = any(ext for ext in obj.mio3sk.ext_data if ext.protect_delta)
+        if use_protect_delta:
             return context.window_manager.invoke_props_dialog(self)
         else:
             return self.execute(context)
@@ -43,61 +38,80 @@ class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
     def execute(self, context):
         self.start_time()
         obj = context.active_object
-        if not valid_shape_key(obj):
+        if not is_local_obj(obj) or not valid_shape_key(obj):
             return {"CANCELLED"}
 
+        obj.update_from_editmode()
+
         is_edit = obj.mode == "EDIT"
-
-        if is_edit:
-            bpy.ops.object.mode_set(mode="OBJECT")
-
         shape_keys = obj.data.shape_keys
         basis_kb = shape_keys.reference_key
-        shape_kb = obj.active_shape_key
-        v_len = len(obj.data.vertices)
-
-        selection_mask = create_selection_mask(obj, is_edit)
-
-        basis_co = np.empty(v_len * 3, dtype=np.float32)
-        shape_co = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co)
-        shape_kb.data.foreach_get("co", shape_co)
-        basis_xyz = basis_co.reshape(-1, 3)
-        delta_xyz = (shape_co - basis_co).reshape(-1, 3)
-
-        ext_data = obj.mio3sk.ext_data
-
-        for kb in shape_keys.key_blocks:
-            if kb.lock_shape and self.use_protect_locked:
-                continue
-
-            ext = ext_data.get(kb.name)
-            protect = ext and ext.protect_delta and self.use_protect_delta
-
-            kb_co = np.empty(v_len * 3, dtype=np.float32)
-            kb.data.foreach_get("co", kb_co)
-            kb_xyz = kb_co.reshape(-1, 3)
-
-            if protect:
-                moved_mask = np.linalg.norm(kb_xyz - basis_xyz, axis=1) > 1e-6
-                apply_mask = ~moved_mask & selection_mask
-                kb_xyz[apply_mask] += delta_xyz[apply_mask]
-            else:
-                kb_xyz[selection_mask] += delta_xyz[selection_mask]
-
-            kb.data.foreach_set("co", kb_xyz.ravel())
-
-            if kb == basis_kb:
-                obj.data.vertices.foreach_set("co", kb_xyz.ravel())
-
-        obj.data.update()
-        context.window_manager.mio3sk.apply_to_basis = shape_kb.name
+        active_kb = obj.active_shape_key
+        active_kb_index = obj.active_shape_key_index
 
         if is_edit:
-            bpy.ops.object.mode_set(mode="EDIT")
+            obj.active_shape_key_index = 0
+            bpy.ops.mesh.blend_from_shape(shape=active_kb.name, add=False)
+            obj.active_shape_key_index = active_kb_index
+        else:
+            bm = bmesh.new()
+            bm.from_mesh(obj.data)
+            bm.verts.ensure_lookup_table()
+
+            shape_co = [active_kb.data[i].co.copy() for i in range(len(bm.verts))]
+            for i in range(len(bm.verts)):
+                bm.verts[i].co = shape_co[i]
+
+            bm.to_mesh(obj.data)
+            bm.free()
+            obj.data.update()
+        
+        obj.data.update()
+
+        context.window_manager.mio3sk.apply_to_basis = active_kb.name
+
+        if self.use_protect_delta:
+            if is_edit:
+                bpy.ops.object.mode_set(mode="OBJECT")
+
+            v_len = len(basis_kb.data)
+            src_co_raw = np.empty(v_len * 3, dtype=np.float32)
+            bas_co_raw = np.empty(v_len * 3, dtype=np.float32)
+            active_kb.data.foreach_get("co", src_co_raw)
+            basis_kb.data.foreach_get("co", bas_co_raw)
+            delta_co_raw = src_co_raw - bas_co_raw
+
+            ext_data = obj.mio3sk.ext_data
+            for ext in ext_data:
+                if (kb := shape_keys.key_blocks.get(ext.name)) is not None:
+                    if ext.protect_delta:
+                        self.repair(bas_co_raw, delta_co_raw, kb, -1, True, v_len)
+
+            obj.data.update()
+
+            if is_edit:
+                bpy.ops.object.mode_set(mode="EDIT")
 
         self.print_time()
         return {"FINISHED"}
+
+    @staticmethod
+    def repair(bas_co_raw, delta_co_raw, target_kb: ShapeKey, blend, moved_only, v_len):
+        act_co_raw = np.empty(v_len * 3, dtype=np.float32)
+        target_kb.data.foreach_get("co", act_co_raw)
+
+        bas_co = bas_co_raw.reshape(-1, 3)
+        act_co = act_co_raw.reshape(-1, 3)
+        delta_co = delta_co_raw.reshape(-1, 3)
+
+        if moved_only:
+            moved = np.any(np.abs(act_co - bas_co) > 1e-6, axis=1)
+            if moved.any():
+                act_co[moved] += delta_co[moved] * blend
+        else:
+            act_co += delta_co * blend
+
+        target_kb.data.foreach_set("co", act_co_raw)
 
 
 classes = [

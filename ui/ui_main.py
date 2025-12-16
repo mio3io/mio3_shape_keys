@@ -98,7 +98,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         layout.separator(factor=0.1)
 
         # ボタン
-        split = layout.split(factor=0.5, align=True)
+        split = layout.split(factor=0.45, align=True)
         sub = split.row(align=True)
         sub.scale_x = 1.1
         sub.scale_y = 1.1
@@ -108,7 +108,8 @@ class MIO3SK_PT_main(Mio3SKPanel):
         sub.prop(prop_o, "use_composer", icon_value=icons.linked, icon_only=True)
 
         split.use_property_split = True
-        split.prop(active_shape_key, "value")
+        sub = split.row(align=True)
+        sub.prop(active_shape_key, "value")
 
         # シェイプ動機
         if prop_o.use_composer:
@@ -155,13 +156,15 @@ class MIO3SK_PT_main(Mio3SKPanel):
             icon="TRIA_DOWN" if not prop_o.is_group_global_close else "TRIA_RIGHT",
             emboss=False,
         )
-        sub = listhead_split.row()
+        sub = listhead_split.row(align=True)
         sub.alignment = "RIGHT"
         sub.label(text="{} / {}".format(visible_len - 1, key_block_len - 1))
         sync = sub.row(align=True)
         sync.scale_x = 0.8
         sync.prop(prop_o, "syncs", text="")
+        sub.separator(factor=0.6)
         sub.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
+        sub.separator(factor=0.6)
         sub.menu("MIO3SK_MT_main", icon="DOWNARROW_HLT", text="")
 
     # シェイプキーリストヘッダー（キーが1個も無い）
