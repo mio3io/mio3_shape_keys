@@ -8,6 +8,7 @@ from . import subscribe
 # Mesh
 from .operators import reset
 from .operators import blend
+from .operators import repair
 from .operators import invert
 from .operators import mirror
 from .operators import smooth_shape
@@ -52,6 +53,7 @@ modules = [
     icons,
     reset,
     blend,
+    repair,
     invert,
     mirror,
     smooth_shape,
