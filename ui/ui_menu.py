@@ -13,11 +13,8 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.operator("object.mio3sk_apply_to_basis", icon_value=icons.apply_basis)
         layout.operator("object.mio3sk_switch_with_basis", icon_value=icons.switch)
         layout.separator()
-        layout.operator("object.mio3sk_shape_key_add", text="New Shape from Mix", icon="ADD").from_mix = True
         layout.operator("object.mio3sk_join_keys", icon_value=icons.join_key)
-
         layout.operator("object.mio3sk_duplicate", icon_value=icons.duplicate)
-        layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
         # layout.operator("object.mio3sk_shape_key_add", icon="ADD", text="シェイプキーの追加（コレクション）").sync = True
         layout.separator()
         layout.operator("object.mio3sk_generate_lr", icon_value=icons.split)
@@ -26,27 +23,25 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.operator("object.mio3sk_generate_opposite", icon_value=icons.opposite)
 
         layout.separator()
-
-
-        layout.separator()
         layout.operator("object.mio3sk_shape_transfer", text="Join from Mesh Shape", icon="FILE_NEW").method = "MESH"
         layout.operator("object.mio3sk_shape_transfer", text="Transfer Shape Key", icon="FILE_NEW").method = "KEY"
 
         layout.separator()
-        layout.operator("object.mio3sk_shape_key_remove", text="Delete All", icon="X").mode = "ALL"
-
-        layout.separator()
         layout.operator("object.mio3sk_replace")
+        layout.separator()
+        layout.operator("object.mio3sk_modifier_apply", icon="MODIFIER")
         # layout.separator()
         # layout.menu("MIO3SK_MT_composer_menu", icon="LINKED")
         layout.separator()
+        layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
         layout.menu("MIO3SK_MT_io_menu", icon="IMPORT")
+        layout.separator()
+        layout.operator("object.mio3sk_shape_key_remove", text="Delete All", icon="X").mode = "ALL"
+
         # layout.menu("MIO3SK_MT_import_menu", icon="IMPORT")
         # layout.menu("MIO3SK_MT_export_menu", icon="EXPORT")
-        layout.separator()
-        layout.operator("object.mio3sk_modifier_apply", icon="MODIFIER")
-        layout.separator()
-        layout.operator("object.mio3sk_refresh_ext_data", text="拡張プロパティの更新", icon_value=icons.refresh)
+        # layout.separator()
+        # layout.operator("object.mio3sk_refresh_ext_data", text="拡張プロパティの更新", icon_value=icons.refresh)
 
 
 class MIO3SK_MT_add(Menu):
@@ -145,22 +140,6 @@ class MIO3SK_MT_composer_menu(Menu):
         layout = self.layout
         layout.operator("object.mio3sk_composer_remove_all", icon="TRASH")
 
-
-class MIO3SK_MT_import_menu(Menu):
-    bl_label = "Import"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("object.mio3sk_import_composer_rules", icon="IMPORT")
-
-
-class MIO3SK_MT_export_menu(Menu):
-    bl_label = "Export"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("object.mio3sk_output_shape_keys", icon="EXPORT")
-        layout.operator("object.mio3sk_export_composer_rules", icon="EXPORT")
 
 class MIO3SK_MT_io_menu(Menu):
     bl_label = "Import/Export"
@@ -271,8 +250,6 @@ classes = [
     MIO3SK_MT_tag_settings,
     MIO3SK_MT_prop_vertex_group,
     MIO3SK_MT_composer_menu,
-    MIO3SK_MT_import_menu,
-    MIO3SK_MT_export_menu,
     MIO3SK_MT_io_menu,
 ]
 

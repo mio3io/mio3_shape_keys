@@ -12,7 +12,7 @@ from ..utils.ext_data import check_update
 class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
     bl_idname = "object.mio3sk_shape_transfer"
     bl_label = "シェイプキーとして形状を転送"
-    bl_description = "アクティブなオブジェクトにシェイプキーとして転送します"
+    bl_description = "他のオブジェクトの形状やシェイプキーをアクティブオブジェクトに転送します"
     bl_options = {"REGISTER", "UNDO"}
 
     method: EnumProperty(
@@ -129,19 +129,19 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
         source_active_shape_key_index = source_obj.active_shape_key_index
 
-        source_basis_co_raw = np.empty(source_len * 3, dtype=np.float32)
-        target_basis_co_raw = np.empty(target_len * 3, dtype=np.float32)
-        source_obj.data.vertices.foreach_get("co", source_basis_co_raw)
-        target_obj.data.vertices.foreach_get("co", target_basis_co_raw)
-        source_basis_co = source_basis_co_raw.reshape(-1, 3)
-        target_basis_co = target_basis_co_raw.reshape(-1, 3)
+        source_basis_co_flat = np.empty(source_len * 3, dtype=np.float32)
+        target_basis_co_flat = np.empty(target_len * 3, dtype=np.float32)
+        source_obj.data.vertices.foreach_get("co", source_basis_co_flat)
+        target_obj.data.vertices.foreach_get("co", target_basis_co_flat)
+        source_basis_co = source_basis_co_flat.reshape(-1, 3)
+        target_basis_co = target_basis_co_flat.reshape(-1, 3)
 
         if self.method == "MESH":
             source_shape = source_obj.shape_key_add(name="__TMP__", from_mix=True)
             target_keys = [source_shape]
 
         source_basis = source_obj.data.shape_keys.reference_key
-        source_basis.data.foreach_get("co", source_basis_co_raw)
+        source_basis.data.foreach_get("co", source_basis_co_flat)
 
         source_min = np.min(source_basis_co, axis=0)
         source_max = np.max(source_basis_co, axis=0)
@@ -199,10 +199,10 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                 new_key = target_obj.shape_key_add(name=kb.name, from_mix=False)
 
             source_shape = source_obj.data.shape_keys.key_blocks.get(source_shape_name)
-            source_shape_co_raw = np.zeros(source_len * 3, dtype=np.float32)
-            source_shape.data.foreach_get("co", source_shape_co_raw)
-            source_diff = (source_shape_co_raw - source_basis_co_raw).reshape(-1, 3)
-            source_shape_co = source_shape_co_raw.reshape(-1, 3)
+            source_shape_co_flat = np.zeros(source_len * 3, dtype=np.float32)
+            source_shape.data.foreach_get("co", source_shape_co_flat)
+            source_diff = (source_shape_co_flat - source_basis_co_flat).reshape(-1, 3)
+            source_shape_co = source_shape_co_flat.reshape(-1, 3)
 
             try:
                 new_key_co = self.transfer_shape(

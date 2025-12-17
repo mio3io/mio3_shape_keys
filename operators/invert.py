@@ -35,12 +35,12 @@ class OBJECT_OT_mio3sk_invert(Mio3SKOperator):
 
         if obj.mode == "OBJECT":
             v_len = len(basis_kb.data)
-            basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            shape_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            basis_kb.data.foreach_get("co", basis_co_raw)
-            active_kb.data.foreach_get("co", shape_co_raw)
-            diff = shape_co_raw - basis_co_raw
-            result_co = basis_co_raw - diff
+            basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            shape_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            basis_kb.data.foreach_get("co", basis_co_flat)
+            active_kb.data.foreach_get("co", shape_co_flat)
+            diff = shape_co_flat - basis_co_flat
+            result_co = basis_co_flat - diff
             active_kb.data.foreach_set("co", result_co)
             obj.data.update()
         else:

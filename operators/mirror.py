@@ -34,9 +34,9 @@ class MESH_OT_mio3sk_mirror(Mio3SKOperator):
             return {"CANCELLED"}
 
         v_len = len(obj.data.vertices)
-        basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co_raw)
-        basis_co = basis_co_raw.reshape(-1, 3)
+        basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        basis_kb.data.foreach_get("co", basis_co_flat)
+        basis_co = basis_co_flat.reshape(-1, 3)
 
         kd = kdtree.KDTree(v_len)
         for i, co in enumerate(basis_co):
@@ -51,9 +51,9 @@ class MESH_OT_mio3sk_mirror(Mio3SKOperator):
             if co_find[2] < 0.0001:
                 mirror_indices[i] = co_find[1]
 
-        shape_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        target_kb.data.foreach_get("co", shape_co_raw)
-        shape_co = shape_co_raw.reshape(-1, 3)
+        shape_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        target_kb.data.foreach_get("co", shape_co_flat)
+        shape_co = shape_co_flat.reshape(-1, 3)
         delta = shape_co - basis_co
 
         result_co = basis_co.copy()

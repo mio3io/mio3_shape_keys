@@ -83,7 +83,7 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
 
 class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
     bl_idname = "object.mio3sk_generate_lr"
-    bl_label = "左右のシェイプキーに分離"
+    bl_label = "Split L/R Shape Keys"
     bl_description = "アクティブキーから左右のシェイプキーを生成します"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -247,7 +247,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
 
 class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
     bl_idname = "object.mio3sk_generate_opposite"
-    bl_label = "反転したシェイプキーを生成"
+    bl_label = "Create Mirror Shape Keys"
     bl_description = "アクティブなL/Rシェイプキーから反対側のシェイプキーを生成"
     bl_options = {"REGISTER", "UNDO"}
 
@@ -358,9 +358,9 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
 
         v_len = len(obj.data.vertices)
 
-        basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co_raw)
-        basis_co = basis_co_raw.reshape(-1, 3)
+        basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        basis_kb.data.foreach_get("co", basis_co_flat)
+        basis_co = basis_co_flat.reshape(-1, 3)
 
         kd = kdtree.KDTree(v_len)
         for i, co in enumerate(basis_co):
@@ -374,9 +374,9 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
             if co_find[2] < 0.0001:
                 mirror_indices[i] = co_find[1]
 
-        shape_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        active_kb.data.foreach_get("co", shape_co_raw)
-        shape_co = shape_co_raw.reshape(-1, 3)
+        shape_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        active_kb.data.foreach_get("co", shape_co_flat)
+        shape_co = shape_co_flat.reshape(-1, 3)
         deform = shape_co - basis_co
 
         new_co = basis_co.copy()
@@ -405,7 +405,7 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
 
 class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
     bl_idname = "object.mio3sk_merge_lr"
-    bl_label = "左右のシェイプキーを統合"
+    bl_label = "Join L/R Shape Keys"
     bl_description = "選択した_L、_Rシェイプキーを統合して新しいシェイプキーを作成します"
     bl_options = {"REGISTER", "UNDO"}
 

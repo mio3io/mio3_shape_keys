@@ -49,9 +49,9 @@ class MESH_OT_mio3sk_reset(Mio3SKOperator):
                 except Exception as e:
                     self.report({"ERROR"}, str(e))
             elif not active_kb.lock_shape:
-                basis_co_raw = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
-                obj.data.vertices.foreach_get("co", basis_co_raw)
-                active_kb.data.foreach_set("co", basis_co_raw)
+                basis_co_flat = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
+                obj.data.vertices.foreach_get("co", basis_co_flat)
+                active_kb.data.foreach_set("co", basis_co_flat)
                 obj.data.update()
             else:
                 self.report({"ERROR"}, "Active Shape Key is Locked")
@@ -102,12 +102,12 @@ class OBJECT_OT_mio3sk_reset(Mio3SKOperator):
                 for i in range(len(obj.data.points)):
                     kb.data[i].co = obj.data.points[i].co.copy()
         else:
-            basis_co_raw = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
-            obj.data.vertices.foreach_get("co", basis_co_raw)
+            basis_co_flat = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
+            obj.data.vertices.foreach_get("co", basis_co_flat)
             for kb in key_blocks:
                 if kb.name not in selected_names or kb.lock_shape:
                     continue
-                kb.data.foreach_set("co", basis_co_raw)
+                kb.data.foreach_set("co", basis_co_flat)
             obj.data.update()
 
         self.print_time()

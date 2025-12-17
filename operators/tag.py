@@ -2,8 +2,8 @@ import bpy
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import get_unique_name, srgb2lnr
-from ..utils.ext_data import refresh_filter_flag, refresh_ext_data, find_current_tag
-from ..globals import TAG_COLOR_PRESET, LABEL_COLOR_DEFAULT
+from ..utils.ext_data import refresh_filter_flag, refresh_ext_data
+from ..globals import TAG_COLOR_PRESET
 
 
 class OBJECT_OT_mio3sk_tag_list_add(Mio3SKGlobalOperator):

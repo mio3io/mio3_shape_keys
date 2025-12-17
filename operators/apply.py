@@ -75,17 +75,33 @@ class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
                 bpy.ops.object.mode_set(mode="OBJECT")
 
             v_len = len(basis_kb.data)
-            src_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            bas_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            active_kb.data.foreach_get("co", src_co_raw)
-            basis_kb.data.foreach_get("co", bas_co_raw)
-            delta_co_raw = src_co_raw - bas_co_raw
+            src_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            bas_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            active_kb.data.foreach_get("co", src_co_flat)
+            basis_kb.data.foreach_get("co", bas_co_flat)
+            delta_co_flat = src_co_flat - bas_co_flat
 
+            bas_co = bas_co_flat.reshape(-1, 3)
+
+            moved_only = True
             ext_data = obj.mio3sk.ext_data
             for ext in ext_data:
-                if (kb := shape_keys.key_blocks.get(ext.name)) is not None:
+                if (target_kb := shape_keys.key_blocks.get(ext.name)) is not None:
                     if ext.protect_delta:
-                        self.repair(bas_co_raw, delta_co_raw, kb, -1, True, v_len)
+                        target_co_flat = np.empty(v_len * 3, dtype=np.float32)
+                        target_kb.data.foreach_get("co", target_co_flat)
+
+                        target_co = target_co_flat.reshape(-1, 3)
+                        delta_co = delta_co_flat.reshape(-1, 3)
+
+                        if moved_only:
+                            moved = np.any(np.abs(target_co - bas_co) > 1e-6, axis=1)
+                            if moved.any():
+                                target_co[moved] += delta_co[moved] * -1
+                        else:
+                            target_co += delta_co * -1
+
+                        target_kb.data.foreach_set("co", target_co_flat)
 
             obj.data.update()
 
@@ -94,24 +110,6 @@ class OBJECT_OT_mio3sk_apply_to_basis(Mio3SKOperator):
 
         self.print_time()
         return {"FINISHED"}
-
-    @staticmethod
-    def repair(bas_co_raw, delta_co_raw, target_kb: ShapeKey, blend, moved_only, v_len):
-        act_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        target_kb.data.foreach_get("co", act_co_raw)
-
-        bas_co = bas_co_raw.reshape(-1, 3)
-        act_co = act_co_raw.reshape(-1, 3)
-        delta_co = delta_co_raw.reshape(-1, 3)
-
-        if moved_only:
-            moved = np.any(np.abs(act_co - bas_co) > 1e-6, axis=1)
-            if moved.any():
-                act_co[moved] += delta_co[moved] * blend
-        else:
-            act_co += delta_co * blend
-
-        target_kb.data.foreach_set("co", act_co_raw)
 
 
 classes = [

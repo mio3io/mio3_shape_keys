@@ -325,7 +325,7 @@ def copy_ext_info(source_ext, target_ext):
         new_tag.name = tag.name
 
 
-def clear_filter(context: Context, obj: Object):
+def clear_filter(context: Context, obj: Object, clear_filter_select=False):
     prop_o = obj.mio3sk
     prop_w = context.window_manager.mio3sk
 
@@ -336,18 +336,21 @@ def clear_filter(context: Context, obj: Object):
     for tag in prop_o.tag_list:
         tag["active"] = False  # タグ
 
-    obj.mio3sk["filter_name"] = ""  # 文字検索
-    obj.mio3sk["is_group_global_close"] = False  # グループ全体開閉
+    prop_o["filter_name"] = ""  # 文字検索
+    prop_o["is_group_global_close"] = False  # グループ全体開閉
     prop_w.tag_filter_type = "OR"  # タグフィルタータイプ
     prop_w.tag_filter_invert = False  # タグフィルター反転
 
+    if clear_filter_select:
+        prop_o["filter_select"] = False
 
-def find_current_tag(ext, tag_list):
-    """現在の登録タグの中で一番最初のタグを取得"""
-    if ext.tags and len(tag_list):
-        for tag in tag_list:
-            if is_close_color(tag.color, TAG_COLOR_DEFAULT):
-                continue
-            if tag.name in ext.tags:
-                return tag
-    return None
+
+# def find_current_tag(ext, tag_list):
+#     """現在の登録タグの中で一番最初のタグを取得"""
+#     if ext.tags and len(tag_list):
+#         for tag in tag_list:
+#             if is_close_color(tag.color, TAG_COLOR_DEFAULT):
+#                 continue
+#             if tag.name in ext.tags:
+#                 return tag
+#     return None

@@ -7,11 +7,9 @@ from ..utils.ext_data import (
     refresh_ext_data,
     refresh_filter_flag,
     clear_filter,
-    find_current_tag,
     refresh_composer_info,
 )
-from ..utils.utils import has_shape_key, valid_shape_key, is_sync_collection, is_close_color
-from ..globals import LABEL_COLOR_DEFAULT
+from ..utils.utils import has_shape_key, valid_shape_key, is_sync_collection
 
 
 def cleanup_ext_data(context, obj):
@@ -142,14 +140,9 @@ class OBJECT_OT_mio3sk_clear_filter(Mio3SKOperator):
         obj = context.active_object
         if not has_shape_key(obj):
             return {"CANCELLED"}
-        clear_filter(context, obj)
-
-        prop_o = obj.mio3sk
-        # for ext in prop_o.ext_data:
-        #     ext["select"] = False
-        prop_o["filter_select"] = False
-
+        clear_filter(context, obj, clear_filter_select=True)
         refresh_filter_flag(context, obj)
+
         return {"FINISHED"}
 
 

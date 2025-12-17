@@ -97,14 +97,14 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
 
         # 使用していないキー
         v_len = len(obj.data.vertices)
-        basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co_raw)
-        basis_co = basis_co_raw.reshape(-1, 3)
+        basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        basis_kb.data.foreach_get("co", basis_co_flat)
+        basis_co = basis_co_flat.reshape(-1, 3)
         unused = set()
         for kb in key_blocks[1:]:
-            shape_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            kb.data.foreach_get("co", shape_co_raw)
-            shape_co = shape_co_raw.reshape(-1, 3)
+            shape_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            kb.data.foreach_get("co", shape_co_flat)
+            shape_co = shape_co_flat.reshape(-1, 3)
             if np.any(np.abs(basis_co - shape_co) > 0.00001):
                 continue
             unused.add(kb.name)
@@ -160,10 +160,10 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
                     new_shape_key = obj.shape_key_add(name=kb.name, from_mix=False)
                     # print("[Object:{} Key:{}] 適用後の頂点数が異なるため統合できません".format(obj.name, kb.name))
                 else:
-                    eval_co_raw = np.empty(len(eval_mesh.vertices) * 3, dtype=np.float32)
+                    eval_co_flat = np.empty(len(eval_mesh.vertices) * 3, dtype=np.float32)
                     new_shape_key = obj.shape_key_add(name=kb.name, from_mix=False)
-                    eval_mesh.vertices.foreach_get("co", eval_co_raw)
-                    new_shape_key.data.foreach_set("co", eval_co_raw)
+                    eval_mesh.vertices.foreach_get("co", eval_co_flat)
+                    new_shape_key.data.foreach_set("co", eval_co_flat)
                 eval_obj.to_mesh_clear()
                 kb.value = 0.0
             new_shape_key.value = 0.0

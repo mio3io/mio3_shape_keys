@@ -42,19 +42,19 @@ class MESH_OT_mio3sk_repair(Mio3SKOperator):
     @staticmethod
     def repair(basis_kb: ShapeKey, source_kb: ShapeKey, target_kb: ShapeKey, blend, moved_only):
         v_len = len(target_kb.data)
-        bas_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        act_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        src_co_raw = np.empty(v_len * 3, dtype=np.float32)
+        bas_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        act_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        src_co_flat = np.empty(v_len * 3, dtype=np.float32)
 
-        basis_kb.data.foreach_get("co", bas_co_raw)
-        target_kb.data.foreach_get("co", act_co_raw)
-        source_kb.data.foreach_get("co", src_co_raw)
+        basis_kb.data.foreach_get("co", bas_co_flat)
+        target_kb.data.foreach_get("co", act_co_flat)
+        source_kb.data.foreach_get("co", src_co_flat)
 
-        delta_co_raw = src_co_raw - bas_co_raw
+        delta_co_flat = src_co_flat - bas_co_flat
 
-        bas_co = bas_co_raw.reshape(-1, 3)
-        act_co = act_co_raw.reshape(-1, 3)
-        delta_co = delta_co_raw.reshape(-1, 3)
+        bas_co = bas_co_flat.reshape(-1, 3)
+        act_co = act_co_flat.reshape(-1, 3)
+        delta_co = delta_co_flat.reshape(-1, 3)
 
         if moved_only:
             moved = np.any(np.abs(act_co - bas_co) > 1e-6, axis=1)
@@ -63,7 +63,7 @@ class MESH_OT_mio3sk_repair(Mio3SKOperator):
         else:
             act_co += delta_co * blend
 
-        target_kb.data.foreach_set("co", act_co_raw)
+        target_kb.data.foreach_set("co", act_co_flat)
 
     def draw(self, context):
         obj = context.active_object

@@ -18,6 +18,7 @@ translation_dict = {
         ("*", "Has not Shape Keys"): "シェイプキーがありません",
         ("*", "Active Shape Key is Locked"): "アクティブなシェイプキーはロックされています",
         ("*", "Import and Export"): "インポート＆エクスポート",
+        ("*", "Create New"): "新規作成",
 
         ("Operator", "Mute All"): "すべてミュート",
         ("Operator", "Unmute"): "ミュート解除",
@@ -66,6 +67,8 @@ translation_dict = {
         # Object
         ("Operator", "Apply to Basis"): "Basisに適用",
         ("Operator", "Switch to Basis"):"Basisと入れ替え",
+        ("Operator", "Join Shape Keys"):"シェイプキーを統合",
+        ("*", "Join To"):"統合先",
         ("Operator", "Duplicate Shape Key"): "シェイプキーを複製",
         ("Operator", "Remove Selected Shape Keys"): "選択したキーをすべて削除",
         ("Operator", "Move Shape Keys"): "シェイプキーを移動",
@@ -80,6 +83,11 @@ translation_dict = {
         ("Operator", "Fill Shape Keys"): "不足するシェイプキーを補完",
         ("*", "Fill shapekeys from collection"): "コレクションから不足しているシェイプキーを埋める",
         ("*", "Apply Shapes"): "現在のシェイプを適用",
+
+        ("Operator", "Split L/R Shape Keys"):"左右のシェイプキーに分離",
+        ("Operator", "Join L/R Shape Keys"):"左右のシェイプキーを統合",
+        ("Operator", "Create Mirror Shape Keys"):"反転したシェイプキーを生成",
+
 
         # Batch Rename
         ("*", "Regular expression syntax is incorrect"): "正規表現が正しくありません",

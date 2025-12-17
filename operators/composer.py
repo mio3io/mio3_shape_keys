@@ -308,9 +308,9 @@ class OBJECT_OT_mio3sk_composer_apply(Mio3SKComposerEditOperator):
         v_len = len(obj.data.vertices)
         basis_kb = obj.data.shape_keys.reference_key
 
-        basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co_raw)
-        basis_co = basis_co_raw.reshape(-1, 3)
+        basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        basis_kb.data.foreach_get("co", basis_co_flat)
+        basis_co = basis_co_flat.reshape(-1, 3)
 
         # Basisのミラーマッピング情報 (ミラーコピーを使用する場合)
         mirror_indices = None
@@ -367,9 +367,9 @@ class OBJECT_OT_mio3sk_composer_apply(Mio3SKComposerEditOperator):
         # 作業用キー
         buffer_kb = obj.shape_key_add(name="__MIO3SK_TMP__", from_mix=True)
 
-        buffer_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        buffer_kb.data.foreach_get("co", buffer_co_raw)
-        buffer_co = buffer_co_raw.reshape(-1, 3)
+        buffer_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        buffer_kb.data.foreach_get("co", buffer_co_flat)
+        buffer_co = buffer_co_flat.reshape(-1, 3)
 
         if ext.composer_type == "MIRROR":
             result_co = self.mirror(basis_co, buffer_co, mirror_indices)
@@ -387,8 +387,8 @@ class OBJECT_OT_mio3sk_composer_apply(Mio3SKComposerEditOperator):
                 result_co[center_mask] = basis_co[center_mask] + (buffer_co[center_mask] - basis_co[center_mask]) * 0.5
                 result_co[~(negative_mask | center_mask)] = basis_co[~(negative_mask | center_mask)]
         elif ext.composer_type == "INVERT":
-            basis_co_raw = basis_co.ravel()
-            result_co = basis_co_raw - (buffer_co_raw - basis_co_raw)
+            basis_co_flat = basis_co.ravel()
+            result_co = basis_co_flat - (buffer_co_flat - basis_co_flat)
         else:
             result_co = buffer_co
 

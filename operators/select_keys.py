@@ -53,15 +53,15 @@ class OBJECT_OT_mio3sk_select_all_unused(MIO3SKSelectKeysBase):
 
         v_len = len(me.vertices)
 
-        basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co_raw)
-        basis_co = basis_co_raw.reshape(-1, 3)
+        basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        basis_kb.data.foreach_get("co", basis_co_flat)
+        basis_co = basis_co_flat.reshape(-1, 3)
 
         select_keys = set()
         for kb in key_blocks[1:]:
-            shape_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            kb.data.foreach_get("co", shape_co_raw)
-            shape_co = shape_co_raw.reshape(-1, 3)
+            shape_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            kb.data.foreach_get("co", shape_co_flat)
+            shape_co = shape_co_flat.reshape(-1, 3)
             if np.any(np.abs(basis_co - shape_co) > self.threshold):
                 continue
             select_keys.add(kb.name)
@@ -199,9 +199,9 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
             if len(visible_verts) == 0:
                 return {"CANCELLED"}
 
-        basis_co_raw = np.empty(v_len * 3, dtype=np.float32)
-        basis_kb.data.foreach_get("co", basis_co_raw)
-        basis_co = basis_co_raw.reshape(-1, 3)
+        basis_co_flat = np.empty(v_len * 3, dtype=np.float32)
+        basis_kb.data.foreach_get("co", basis_co_flat)
+        basis_co = basis_co_flat.reshape(-1, 3)
 
         kd = kdtree.KDTree(v_len)
         for i, co in enumerate(basis_co):
@@ -235,9 +235,9 @@ class OBJECT_OT_mio3sk_select_all_asymmetry(MIO3SKSelectKeysBase):
 
         select_keys = set()
         for kb in candidate_keys:
-            shape_co_raw = np.empty(v_len * 3, dtype=np.float32)
-            kb.data.foreach_get("co", shape_co_raw)
-            shape_co = shape_co_raw.reshape(-1, 3)
+            shape_co_flat = np.empty(v_len * 3, dtype=np.float32)
+            kb.data.foreach_get("co", shape_co_flat)
+            shape_co = shape_co_flat.reshape(-1, 3)
             deformation = shape_co - basis_co
             left_deform = deformation[pair_indices]
             right_deform = deformation[valid_mirror_indices]
