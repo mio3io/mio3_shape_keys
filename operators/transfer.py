@@ -133,7 +133,6 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         target_basis_co_flat = np.empty(target_len * 3, dtype=np.float32)
         source_obj.data.vertices.foreach_get("co", source_basis_co_flat)
         target_obj.data.vertices.foreach_get("co", target_basis_co_flat)
-        source_basis_co = source_basis_co_flat.reshape(-1, 3)
         target_basis_co = target_basis_co_flat.reshape(-1, 3)
 
         if self.method == "MESH":
@@ -142,6 +141,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
         source_basis = source_obj.data.shape_keys.reference_key
         source_basis.data.foreach_get("co", source_basis_co_flat)
+        source_basis_co = source_basis_co_flat.reshape(-1, 3)
 
         source_min = np.min(source_basis_co, axis=0)
         source_max = np.max(source_basis_co, axis=0)
@@ -169,18 +169,14 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                 source_len, target_len, source_basis_co, target_basis_co, source_scale, target_scale
             )
 
-        direct_map_op = {}
-        for target_idx, source_idx in direct_map.items():
-            direct_map_op[target_idx] = (target_idx * 3, source_idx * 3)
-
         interp_map_op = {}
         for target_idx, mapping_info in interp_map.items():
-            source_indices = [s_idx for s_idx, w in mapping_info]
-            weights = [w for _, w in mapping_info]
-            total_weight = sum(weights)
-            if total_weight > 0:
-                normalized_weights = [w / total_weight for w in weights]
-                interp_map_op[target_idx] = (source_indices, normalized_weights)
+            source_indices = [s_idx for s_idx, _w in mapping_info]
+            weights = np.asarray([_w for _s, _w in mapping_info], dtype=np.float32)
+            total_weight = float(weights.sum())
+            if total_weight > 0.0:
+                weights /= total_weight
+                interp_map_op[target_idx] = (np.asarray(source_indices, dtype=np.int32), weights)
 
         if self.target == "ACTIVE" or self.method == "MESH":
             target_keys = [source_obj.active_shape_key]
@@ -201,12 +197,12 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
             source_shape = source_obj.data.shape_keys.key_blocks.get(source_shape_name)
             source_shape_co_flat = np.zeros(source_len * 3, dtype=np.float32)
             source_shape.data.foreach_get("co", source_shape_co_flat)
-            source_diff = (source_shape_co_flat - source_basis_co_flat).reshape(-1, 3)
             source_shape_co = source_shape_co_flat.reshape(-1, 3)
+            source_diff = (source_shape_co_flat - source_basis_co_flat).reshape(-1, 3)
 
             try:
                 new_key_co = self.transfer_shape(
-                    direct_map_op,
+                    direct_map,
                     interp_map_op,
                     source_shape_co,
                     target_basis_co,
@@ -216,6 +212,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                     self.scale_normalize or self.method == "MESH",
                 )
                 new_key.data.foreach_set("co", new_key_co.ravel())
+                new_key.value = 0.0
             except Exception as e:
                 self.report({"ERROR"}, str(e))
 
@@ -233,7 +230,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
     @staticmethod
     def transfer_shape(
-        direct_map_op,
+        direct_map,
         interp_map_op,
         source_shape_co,
         target_basis_co,
@@ -244,37 +241,29 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
     ):
         new_key_co = target_basis_co.copy()
 
-        for target_idx, (t_idx3, s_idx3) in direct_map_op.items():
-            t_idx = t_idx3 // 3
-            s_idx = s_idx3 // 3
+        if direct_map:
+            t_idx = np.fromiter(direct_map.keys(), dtype=np.int32)
+            s_idx = np.fromiter(direct_map.values(), dtype=np.int32)
             if is_key_method:
                 if scale_normalize:
-                    scaled_diff = source_diff[s_idx] * scale_factors
-                    new_key_co[t_idx] = target_basis_co[t_idx] + scaled_diff
+                    new_key_co[t_idx] = target_basis_co[t_idx] + (source_diff[s_idx] * scale_factors)
                 else:
                     new_key_co[t_idx] = target_basis_co[t_idx] + source_diff[s_idx]
             else:
                 new_key_co[t_idx] = source_shape_co[s_idx]
 
-        for target_idx, (source_indices, weights) in interp_map_op.items():
-            t_idx = target_idx
+        for t_idx, (source_indices, weights) in interp_map_op.items():
             if is_key_method:
-                dx_dy_dz = np.zeros(3)
-                for i, source_idx in enumerate(source_indices):
-                    if scale_normalize:
-                        dx_dy_dz += weights[i] * (source_diff[source_idx] * scale_factors)
-                    else:
-                        dx_dy_dz += weights[i] * source_diff[source_idx]
+                if scale_normalize:
+                    dx_dy_dz = (source_diff[source_indices] * scale_factors * weights[:, None]).sum(axis=0)
+                else:
+                    dx_dy_dz = (source_diff[source_indices] * weights[:, None]).sum(axis=0)
 
-                disp_length = np.linalg.norm(dx_dy_dz)
+                disp_length = float(np.linalg.norm(dx_dy_dz))
                 scale_factor = min(1.0, 1.0 / (disp_length / 2.0 + 0.5))
-                dx_dy_dz *= scale_factor
-                new_key_co[t_idx] = target_basis_co[t_idx] + dx_dy_dz
+                new_key_co[t_idx] = target_basis_co[t_idx] + (dx_dy_dz * scale_factor)
             else:
-                weighted_pos = np.zeros(3)
-                for i, source_idx in enumerate(source_indices):
-                    weighted_pos += weights[i] * source_shape_co[source_idx]
-                new_key_co[t_idx] = weighted_pos
+                new_key_co[t_idx] = (source_shape_co[source_indices] * weights[:, None]).sum(axis=0)
 
         return new_key_co
 
@@ -289,74 +278,57 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
     ):
         threshold = self.threshold
 
-        source_center = np.mean(source_basis_co, axis=0)
-        target_center = np.mean(target_basis_co, axis=0)
-
         use_normalize = self.scale_normalize or self.method == "MESH"
+        if use_normalize and (source_scale <= 1e-8 or target_scale <= 1e-8):
+            use_normalize = False
+
+        if use_normalize:
+            source_center = np.mean(source_basis_co, axis=0)
+            target_center = np.mean(target_basis_co, axis=0)
+            source_co = (source_basis_co - source_center) / source_scale
+            target_co = (target_basis_co - target_center) / target_scale
+        else:
+            source_co = source_basis_co
+            target_co = target_basis_co
 
         kd = kdtree.KDTree(source_len)
         for i in range(source_len):
-            if use_normalize:
-                pos = (source_basis_co[i] - source_center) / source_scale
-                kd.insert(Vector(pos), i)
-            else:
-                kd.insert(Vector(source_basis_co[i]), i)
+            kd.insert(Vector(source_co[i]), i)
         kd.balance()
 
         direct_map = {}
         unmapped_indices = []
 
         for i in range(target_len):
-            if use_normalize:
-                query_pos = Vector((target_basis_co[i] - target_center) / target_scale)
-            else:
-                query_pos = Vector(target_basis_co[i])
-
-            _, index, dist = kd.find(query_pos)
-
+            _, index, dist = kd.find(Vector(target_co[i]))
             if dist <= threshold:
-                source_vert_index = index
-                direct_map[i] = source_vert_index
+                direct_map[i] = index
             else:
                 unmapped_indices.append(i)
 
         interp_map = {}
 
         for i in unmapped_indices:
-            if use_normalize:
-                query_pos = Vector((target_basis_co[i] - target_center) / target_scale)
-            else:
-                query_pos = Vector(target_basis_co[i])
-
+            query_pos = Vector(target_co[i])
             found_points = kd.find_n(query_pos, 8)
             if not found_points:
                 continue
 
-            max_dist = max(dist for _, _, dist in found_points) + 1e-6
-            weights = []
-            source_indices = []
+            source_indices = np.fromiter((idx for _co, idx, _d in found_points), dtype=np.int32)
+            dists = np.fromiter((_d for _co, _idx, _d in found_points), dtype=np.float32)
+            max_dist = float(dists.max()) + 1e-6
+            norm_dist = dists / max_dist
+            weights = np.exp(-4.0 * norm_dist * norm_dist)
 
-            for _, index, dist in found_points:
-                norm_dist = dist / max_dist
-                weight = math.exp(-4.0 * norm_dist * norm_dist)
-                source_indices.append(index)
-                weights.append(weight)
-
-            total_weight = sum(weights)
-            if total_weight > 0:
-                threshold_weight = max(weights) * 0.1
-                filtered_indices = []
-                filtered_weights = []
-
-                for idx, weight in zip(source_indices, weights):
-                    if weight > threshold_weight:
-                        filtered_indices.append(idx)
-                        filtered_weights.append(weight)
-
-                if filtered_weights:
-                    filtered_total = sum(filtered_weights)
-                    mapping_info = [(idx, w / filtered_total) for idx, w in zip(filtered_indices, filtered_weights)]
-                    interp_map[i] = mapping_info
+            total_weight = float(weights.sum())
+            if total_weight > 0.0:
+                threshold_weight = float(weights.max()) * 0.1
+                mask = weights > threshold_weight
+                if mask.any():
+                    weights = weights[mask]
+                    source_indices = source_indices[mask]
+                    weights /= float(weights.sum())
+                    interp_map[i] = list(zip(source_indices.tolist(), weights.tolist()))
 
         return direct_map, interp_map
 
@@ -369,7 +341,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         # source頂点 → UV座標（direct_map用）
         kd_uv = kdtree.KDTree(len(source_uvs))
         for idx, uv in enumerate(source_uvs):
-            kd_uv.insert(Vector((uv[0], uv[1], 0)), idx)
+            kd_uv.insert(Vector((float(uv[0]), float(uv[1]), 0.0)), idx)
         kd_uv.balance()
 
         # source三角形リスト（UV3点, 頂点index3点, bbox）
@@ -378,25 +350,22 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         for poly in mesh.polygons:
             if len(poly.vertices) < 3:
                 continue
-            face_verts = poly.vertices[:]
-            face_uvs = [source_uvs[v_idx] for v_idx in face_verts]
-            # ファン分割
-            for i in range(1, len(face_uvs) - 1):
-                tri_verts = [face_verts[0], face_verts[i], face_verts[i + 1]]
-                tri_uvs = [face_uvs[0], face_uvs[i], face_uvs[i + 1]]
-                min_x = min(uv[0] for uv in tri_uvs)
-                min_y = min(uv[1] for uv in tri_uvs)
-                max_x = max(uv[0] for uv in tri_uvs)
-                max_y = max(uv[1] for uv in tri_uvs)
+            face_verts = poly.vertices
+            face_uvs = source_uvs[np.asarray(face_verts, dtype=np.int32)]
+            for i in range(1, len(face_verts) - 1):
+                tri_verts = (int(face_verts[0]), int(face_verts[i]), int(face_verts[i + 1]))
+                tri_uvs = np.asarray((face_uvs[0], face_uvs[i], face_uvs[i + 1]), dtype=np.float32)
+                min_x = float(tri_uvs[:, 0].min())
+                min_y = float(tri_uvs[:, 1].min())
+                max_x = float(tri_uvs[:, 0].max())
+                max_y = float(tri_uvs[:, 1].max())
                 bbox = (min_x - 0.001, min_y - 0.001, max_x + 0.001, max_y + 0.001)
                 source_tris.append((tri_uvs, tri_verts, bbox))
 
-        tri_centers = [
-            Vector(
-                ((tri[0][0][0] + tri[0][1][0] + tri[0][2][0]) / 3, (tri[0][0][1] + tri[0][1][1] + tri[0][2][1]) / 3, 0)
-            )
-            for tri in source_tris
-        ]
+        tri_centers = []
+        for tri_uvs, _tri_verts, _bbox in source_tris:
+            center = tri_uvs.mean(axis=0)
+            tri_centers.append(Vector((float(center[0]), float(center[1]), 0.0)))
         tri_kd = kdtree.KDTree(len(tri_centers))
         for i, center in enumerate(tri_centers):
             tri_kd.insert(center, i)
@@ -409,8 +378,8 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         for target_idx, target_uv in enumerate(target_uvs):
             if target_idx >= target_len:
                 continue
-            query_pos = Vector((target_uv[0], target_uv[1], 0))
-            co, index, dist = kd_uv.find(query_pos)
+            query_pos = Vector((float(target_uv[0]), float(target_uv[1]), 0.0))
+            _co, index, dist = kd_uv.find(query_pos)
             if dist <= threshold:
                 direct_map[target_idx] = index
                 continue
@@ -423,7 +392,10 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                 if not (bbox[0] <= target_uv[0] <= bbox[2] and bbox[1] <= target_uv[1] <= bbox[3]):
                     continue
                 bary_uv = intersect_point_tri_2d(
-                    (target_uv[0], target_uv[1]), Vector(tri_uvs[0]), Vector(tri_uvs[1]), Vector(tri_uvs[2])
+                    (float(target_uv[0]), float(target_uv[1])),
+                    Vector((float(tri_uvs[0][0]), float(tri_uvs[0][1]))),
+                    Vector((float(tri_uvs[1][0]), float(tri_uvs[1][1]))),
+                    Vector((float(tri_uvs[2][0]), float(tri_uvs[2][1]))),
                 )
                 if isinstance(bary_uv, tuple) and len(bary_uv) == 2:
                     u, v = bary_uv
@@ -438,16 +410,13 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
             if not found:
                 # 近傍頂点4つから距離の逆数で重みづけ
                 found_points = kd_uv.find_n(query_pos, 4)
-                weights = []
-                source_indices = []
-                for _, idx, dist in found_points:
-                    weight = 1.0 / (dist * dist + 1e-6)
-                    source_indices.append(idx)
-                    weights.append(weight)
-                total_weight = sum(weights)
-                if total_weight > 0:
-                    mapping_info = [(src_idx, w / total_weight) for src_idx, w in zip(source_indices, weights)]
-                    interp_map[target_idx] = mapping_info
+                source_indices = np.fromiter((idx for _co, idx, _d in found_points), dtype=np.int32)
+                dists = np.fromiter((_d for _co, _idx, _d in found_points), dtype=np.float32)
+                weights = 1.0 / (dists * dists + 1e-6)
+                total_weight = float(weights.sum())
+                if total_weight > 0.0:
+                    weights /= total_weight
+                    interp_map[target_idx] = list(zip(source_indices.tolist(), weights.tolist()))
 
         return direct_map, interp_map
 
