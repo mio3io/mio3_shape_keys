@@ -29,7 +29,8 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
         obj = context.active_object
         return obj is not None and has_shape_key(obj) and obj.mode == "OBJECT"
 
-    def get_unique_copy_name(self, existing_names, base_name):
+    @staticmethod
+    def get_unique_copy_name(existing_names, base_name):
         if base_name not in existing_names:
             return base_name
         counter = 2
@@ -62,10 +63,13 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
             base_name = active_kb.name[: match.start()] + " copy"
             new_kb.name = self.get_unique_copy_name(key_blocks.keys(), base_name)
         else:
-            new_kb.name = "{} copy".format(active_kb.name)
+            base_name = "{} copy".format(active_kb.name)
+            new_kb.name = self.get_unique_copy_name(key_blocks.keys(), base_name)
 
-        for i in range(len(new_kb.data)):
-            new_kb.data[i].co = active_kb.data[i].co.copy()
+        v_len = len(active_kb.data)
+        co_flat = np.empty(v_len * 3, dtype=np.float32)
+        active_kb.data.foreach_get("co", co_flat)
+        new_kb.data.foreach_set("co", co_flat)
 
         refresh_ext_data(context, obj, added=True)
         move_shape_key_below(obj, key_blocks.find(active_kb.name), move_idx)

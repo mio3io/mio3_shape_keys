@@ -44,15 +44,50 @@ def get_unique_name(existing_names, base_name="Group", sep=" "):
         counter += 1
 
 
-def move_shape_key_below(obj, anchor_idx, move_idx):
-    obj.active_shape_key_index = move_idx
-    half_point = move_idx // 2
-    if anchor_idx <= half_point:
+def move_shape_key_below(obj, anchor_idx, target_idx):
+    """ target_idx のシェイプキーを anchor_idx の直下に移動する """
+    key_blocks = obj.data.shape_keys.key_blocks
+    count = len(key_blocks)
+
+    if count < 2:
+        return
+    if anchor_idx < 0 or target_idx < 0:
+        return
+    if anchor_idx >= count or target_idx >= count:
+        return
+
+    if target_idx == anchor_idx:
+        return
+
+    if target_idx < anchor_idx:
+        destination = anchor_idx
+    else:
+        destination = anchor_idx + 1
+
+    destination = max(1, min(destination, count - 1))
+    if destination == target_idx:
+        return
+
+    obj.active_shape_key_index = target_idx
+
+    direct_moves = abs(target_idx - destination)
+    top_moves = destination 
+    bottom_moves = count - destination
+
+    if direct_moves <= min(top_moves, bottom_moves):
+        if target_idx > destination:
+            for _ in range(target_idx - destination):
+                bpy.ops.object.shape_key_move(type="UP")
+        else:
+            for _ in range(destination - target_idx):
+                bpy.ops.object.shape_key_move(type="DOWN")
+    elif top_moves <= bottom_moves:
         bpy.ops.object.shape_key_move(type="TOP")
-        for _ in range(anchor_idx + 1 - 1):
+        for _ in range(destination - 1):
             bpy.ops.object.shape_key_move(type="DOWN")
     else:
-        for _ in range(move_idx - anchor_idx - 1):
+        bpy.ops.object.shape_key_move(type="BOTTOM")
+        for _ in range((count - 1) - destination):
             bpy.ops.object.shape_key_move(type="UP")
 
 

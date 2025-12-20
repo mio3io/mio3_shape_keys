@@ -42,7 +42,9 @@ class OBJECT_OT_mio3sk_move(Mio3SKOperator):
     def execute(self, context):
         obj = context.active_object
 
-        if self.type == "UP":
+        if self.type in {"TOP", "BOTTOM"}:
+            bpy.ops.object.shape_key_move(type=self.type)
+        elif self.type == "UP":
             for _ in range(self.move):
                 if obj.active_shape_key_index <= 1:
                     break
@@ -72,6 +74,7 @@ class OBJECT_OT_mio3sk_move_below(Mio3SKOperator):
         return obj is not None and valid_shape_key(obj) and obj.mode == "OBJECT"
 
     def execute(self, context):
+        self.start_time()
         obj = context.active_object
         key_blocks = obj.data.shape_keys.key_blocks
         active_kb = obj.active_shape_key
@@ -84,19 +87,17 @@ class OBJECT_OT_mio3sk_move_below(Mio3SKOperator):
         else:
             remaining = [name for name in key_blocks.keys() if name not in selected_names]
             active_index = remaining.index(active_kb.name)
-            # new_order = remaining[: active_index + 1] + selected_names + remaining[active_index + 1 :]
-            new_order = remaining[active_index:1] + selected_names + remaining[active_index + 1 :]
-
-            current_key_name = active_kb.name
-            for key in new_order:
+            sorted_names = remaining[active_index:1] + selected_names + remaining[active_index + 1 :]
+            for i, key in enumerate(sorted_names):
                 idx = key_blocks.find(key)
                 obj.active_shape_key_index = idx
                 bpy.ops.object.shape_key_move(type="BOTTOM")
-            obj.active_shape_key_index = key_blocks.find(current_key_name)
 
+        obj.active_shape_key_index = key_blocks.find(active_kb.name)
         check_update(context, obj)
         refresh_ext_data(context, obj)
         refresh_filter_flag(context, obj)
+        self.print_time()
         return {"FINISHED"}
 
 
