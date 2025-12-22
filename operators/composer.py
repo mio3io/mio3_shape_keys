@@ -5,7 +5,7 @@ from bpy.props import BoolProperty, IntProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, valid_shape_key
-from ..utils.ext_data import refresh_composer_info
+from ..utils.ext_data import refresh_data
 
 
 class Mio3SKComposerEditOperator(Mio3SKOperator):
@@ -34,7 +34,7 @@ class OBJECT_OT_mio3sk_composer_source_add(Mio3SKComposerEditOperator):
         if ext is not None:
             ext.composer_source.add()
 
-        refresh_composer_info(obj)
+        refresh_data(context, obj, composer=True)
         return {"FINISHED"}
 
 
@@ -54,7 +54,7 @@ class OBJECT_OT_mio3sk_composer_source_remove(Mio3SKComposerEditOperator):
             if not ext.composer_source:
                 ext.composer_source.add()
 
-        refresh_composer_info(obj)
+        refresh_data(context, obj, composer=True)
         return {"FINISHED"}
 
 
@@ -85,11 +85,11 @@ class OBJECT_OT_mio3sk_composer_rule_create(Mio3SKComposerEditOperator):
                 source = ext.composer_source.add()
                 source.name = sk.name
                 source.value = sk.value
-            refresh_composer_info(obj)
             bpy.ops.object.mio3sk_composer_apply()
         else:
             ext.composer_source.add()
-            refresh_composer_info(obj)
+        
+        refresh_data(context, obj, composer=True)
         return {"FINISHED"}
 
 
@@ -118,7 +118,7 @@ class OBJECT_OT_mio3sk_composer_rule_remove(Mio3SKComposerEditOperator):
         ext.composer_source.clear()
         ext.composer_enabled = False
 
-        refresh_composer_info(obj)
+        refresh_data(context, obj, composer=True)
         return {"FINISHED"}
 
 
@@ -178,7 +178,7 @@ class OBJECT_OT_mio3sk_composer_rule_remove_all(Mio3SKComposerEditOperator):
             ext.composer_source.clear()
             ext.composer_enabled = False
 
-        refresh_composer_info(obj)
+        refresh_data(context, obj, composer=True)
         obj.data.update()
         return {"FINISHED"}
 

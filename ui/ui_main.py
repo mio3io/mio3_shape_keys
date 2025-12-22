@@ -206,20 +206,16 @@ class MIO3SK_PT_main(Mio3SKPanel):
         MIO3SK_PT_main.layout_buttons_add(side_row)
         side_sub.separator(factor=0.8)
 
-        group_items = [item for item in prop_o.ext_data if item.is_group and not item.is_group_hidden]
         column = side_sub.column(align=True)
         column.scale_x = 0.5
 
-        key_blocks = obj.data.shape_keys.key_blocks
-        def sort_key(g):
-            idx = key_blocks.find(g.name)
-            return idx if idx != -1 else 9999
-        sorted_groups = sorted(group_items, key=sort_key)
-
-        for i, group in enumerate(sorted_groups):
+        for group in prop_o.groups:
+            ext = prop_o.ext_data.get(group.name)
+            if ext is None or not ext.is_group or ext.is_group_hidden:
+                continue
             sub = column.row(align=True)
             sub_color = sub.row(align=True)
-            sub_color.prop(group, "group_color", icon="COLOR", icon_only=True)
+            sub_color.prop(ext, "group_color", icon="COLOR", icon_only=True)
             sub_color.scale_x = 0.5
 
             r = sub.column(align=True)
@@ -227,9 +223,9 @@ class MIO3SK_PT_main(Mio3SKPanel):
             r.operator(
                 "object.mio3sk_select_group",
                 translate=False,
-                text=group.name.strip("=-+*#~"),
-                depress=group.is_group_active,
-            ).group = group.name
+                text=group.label,
+                depress=ext.is_group_active,
+            ).group = ext.name
         side_sub.separator(factor=0.8)
 
         side_row = side_sub.row(align=True)

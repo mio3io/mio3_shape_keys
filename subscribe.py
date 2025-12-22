@@ -4,7 +4,7 @@ from bpy.app.handlers import persistent
 from .globals import get_preferences
 from .utils import debug_function
 from .utils.utils import is_obj, is_local_obj, is_local, has_shape_key, is_sync_collection
-from .utils.ext_data import check_update, refresh_ext_data, refresh_filter_flag, rename_ext_data
+from .utils.ext_data import check_update, refresh_data, refresh_filter_flag, rename_ext_data
 from .utils.mirror import get_mirror_name
 import time
 
@@ -49,7 +49,7 @@ def callback_active_shape_key_index():
         new_history = prop_w.select_history.add()
         new_history.name = name
 
-    check_update(context, obj)
+    refresh_data(context, obj, check=True)
 
     # アクティブシェイプキーの同期
     if prefs.use_sync_active_shapekey and is_sync_collection(obj):
@@ -145,7 +145,7 @@ def callback_show_only_shape_key():
 
 
 # 名前変更の自動ミラーリング
-def check_update_callback(context, obj, old_name, new_name):
+def callback_rename(context, obj, old_name, new_name):
     pref = get_preferences()
     if pref.use_rename_mirror:
         old_mirror_name = get_mirror_name(old_name)
@@ -155,12 +155,14 @@ def check_update_callback(context, obj, old_name, new_name):
             key_blocks[old_mirror_name].name = new_mirror_name
             rename_ext_data(context, obj, old_mirror_name, new_mirror_name)
 
+
 def callback_name():
     context = bpy.context
     obj = context.object
     if obj:
-        check_update(context, obj, callback=check_update_callback)
-        refresh_filter_flag(context, obj)
+        check_update(context, obj, callback_rename=callback_rename)
+        refresh_data(context, obj, group=True, filter=True)
+
 
 def init_addon():
     debug_function("Mio3 ShapeKeys: Init Addon")
@@ -168,9 +170,7 @@ def init_addon():
     for obj in bpy.data.objects:
         try:
             if is_local(obj) and has_shape_key(obj):
-                check_update(context, obj)
-                refresh_ext_data(context, obj, True, True)
-                refresh_filter_flag(context, obj)
+                refresh_data(context, obj, check=True, group=True, filter=True, tag=True, composer=True)
         except:
             pass
 
@@ -227,7 +227,8 @@ def undo_redo_handler(scene):
     context = bpy.context
     obj = context.object
     if is_local_obj(obj) and has_shape_key(obj):
-        check_update(context, context.object, sync=False, callback=check_update_callback)
+        check_update(context, context.object, callback_rename=callback_rename)
+        refresh_data(context, obj, group=True, filter=True)
 
 
 @persistent

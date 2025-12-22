@@ -1,7 +1,7 @@
 import bpy
-from bpy.props import BoolProperty, IntProperty, StringProperty
-from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
-from ..utils.ext_data import refresh_filter_flag
+from bpy.props import StringProperty
+from ..classes.operator import Mio3SKGlobalOperator
+from ..utils.ext_data import refresh_data
 
 
 class OBJECT_OT_mio3sk_select_group(Mio3SKGlobalOperator):
@@ -23,10 +23,8 @@ class OBJECT_OT_mio3sk_select_group(Mio3SKGlobalOperator):
             else:
                 item.is_group_active = False
 
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, filter=True)
         return {"FINISHED"}
-
-
 
 
 classes = [

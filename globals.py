@@ -1,7 +1,9 @@
 import bpy
 import os
+import sys
 
-DEBUG = False
+# DEBUG = True
+DEBUG = bool("--python" in sys.argv)
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "resource")
 TAGS_DIR = os.path.join(TEMPLATE_DIR, "tags")

@@ -4,7 +4,7 @@ import numpy as np
 from bpy.props import BoolProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, valid_shape_key, get_unique_name
-from ..utils.ext_data import clear_filter
+from ..utils.ext_data import clear_filter, refresh_data
 
 # shape_key_transfer_op = bpy.ops.object.shape_key_transfer.get_rna_type()
 # join_shapes_op = bpy.ops.object.join_shapes.get_rna_type()
@@ -97,6 +97,7 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
             new_key = obj.shape_key_add(name=get_unique_name(key_blocks.keys(), "Key"), from_mix=True)
             obj.active_shape_key_index = key_blocks.find(new_key.name)
 
+        refresh_data(context, obj, check=True, group=True, filter=True)
         return {"FINISHED"}
 
 

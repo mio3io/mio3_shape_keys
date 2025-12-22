@@ -12,7 +12,7 @@ from bpy.props import (
 )
 from .icons import icons
 from .utils.utils import has_shape_key
-from .utils.ext_data import refresh_ext_data, refresh_filter_flag, refresh_ui_select
+from .utils.ext_data import refresh_data, refresh_group_data, refresh_filter_flag, refresh_ui_select
 from .globals import TAG_COLOR_DEFAULT, LABEL_COLOR_DEFAULT
 from .subscribe import callback_show_only_shape_key
 
@@ -145,7 +145,8 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         refresh_filter_flag(context, context.object)
 
     def callback_is_group(self, context):
-        refresh_filter_flag(context, context.object)
+        # refresh_filter_flag(context, context.object)
+        refresh_data(context, context.object, group=True, filter=True)
 
     def callback_is_group_color(self, context):
         obj = context.object
@@ -162,7 +163,7 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
                 ext["group_color"] = self.group_color
 
     select: BoolProperty(
-        name="Select\n[Ctrl] Group Select",
+        name="Select\n[Alt] Group Select",
         default=False,
         update=callback_ext_data_select,
         options=set(),
@@ -224,7 +225,7 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
 
 # フループ名
 class OBJECT_PG_mio3sk_group(PropertyGroup):
-    pass
+    label: StringProperty(name="Label", options=set())
 
 
 # オブジェクト
@@ -261,15 +262,16 @@ class OBJECT_PG_mio3sk(PropertyGroup):
         type=OBJECT_PG_mio3sk_ext_data,
         options=set(),
     )
-
-    # groups: CollectionProperty(
-    #     name="Groups",
-    #     type=OBJECT_PG_mio3sk_group,
-    #     options=set(),
-    # )
-    # ext_dirty: BoolProperty(name="Ext Dirty", default=False, options=set())
-    # filter_dirty: BoolProperty(name="Filter Dirty", default=False, options=set())
-    # group_dirty: BoolProperty(name="Groups Dirty", default=False, options=set())
+    groups: CollectionProperty(
+        name="Groups",
+        type=OBJECT_PG_mio3sk_group,
+        options=set(),
+    )
+    ext_dirty: BoolProperty(name="Ext Dirty", default=False, options=set())
+    filter_dirty: BoolProperty(name="Filter Dirty", default=False, options=set())
+    group_dirty: BoolProperty(name="Groups Dirty", default=False, options=set())
+    composer_dirty: BoolProperty(name="Composer Dirty", default=False, options=set())
+    tag_dirty: BoolProperty(name="Tag Dirty", default=False, options=set())
 
     # 機能の使用
     syncs: PointerProperty(name="Collection Sync", type=Collection, update=callback_syncs, options=set())
@@ -340,7 +342,7 @@ class SCENE_PG_mio3sk(PropertyGroup):
     def callback_use_group_prefix(self, context):
         for obj in bpy.data.objects:
             if has_shape_key(obj):
-                refresh_ext_data(context, obj)
+                refresh_data(context, obj, group=True)
 
     show_select: BoolProperty(name="Show Select", default=True, options=set())
     show_lock: BoolProperty(name="Show Lock", default=True, update=refresh_panel_factor, options=set())
@@ -375,6 +377,10 @@ class SCENE_PG_mio3sk(PropertyGroup):
     )
 
 
+class WM_PG_mio3sk_operator_objects(PropertyGroup):
+    pass
+
+
 class WM_PG_mio3sk(PropertyGroup):
     def poll_source_object(self, obj):
         return has_shape_key(obj) and bpy.context.object != obj
@@ -402,6 +408,12 @@ class WM_PG_mio3sk(PropertyGroup):
     select_history: CollectionProperty(
         name="Select History",
         type=WM_PG_mio3sk_string,
+        options=set(),
+    )
+
+    operator_objects: CollectionProperty(
+        name="Operator Objects",
+        type=WM_PG_mio3sk_operator_objects,
         options=set(),
     )
 
@@ -446,6 +458,7 @@ classes = [
     OBJECT_PG_mio3sk,
     SCENE_PG_mio3sk,
     WM_PG_mio3sk_string,
+    WM_PG_mio3sk_operator_objects,
     WM_PG_mio3sk,
 ]
 

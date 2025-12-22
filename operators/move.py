@@ -1,10 +1,8 @@
 import bpy
 from bpy.props import EnumProperty, IntProperty
-from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
-from ..utils.ext_data import check_update, get_key_groups
 from ..utils.utils import is_local_obj, valid_shape_key, move_shape_key_below
-from ..utils.ext_data import check_update, refresh_ext_data, refresh_filter_flag
+from ..utils.ext_data import refresh_data, get_key_groups
 
 
 class OBJECT_OT_mio3sk_move(Mio3SKOperator):
@@ -56,9 +54,7 @@ class OBJECT_OT_mio3sk_move(Mio3SKOperator):
                     break
                 bpy.ops.object.shape_key_move(type=self.type)
 
-        check_update(context, obj)
-        refresh_ext_data(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
 
@@ -94,9 +90,7 @@ class OBJECT_OT_mio3sk_move_below(Mio3SKOperator):
                 bpy.ops.object.shape_key_move(type="BOTTOM")
 
         obj.active_shape_key_index = key_blocks.find(active_kb.name)
-        check_update(context, obj)
-        refresh_ext_data(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True)
         self.print_time()
         return {"FINISHED"}
 
@@ -152,9 +146,7 @@ class OBJECT_OT_mio3sk_move_group(Mio3SKOperator):
         wm.progress_end()
         obj.active_shape_key_index = key_blocks.find(current_key_name)
 
-        check_update(context, obj)
-        refresh_ext_data(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
 

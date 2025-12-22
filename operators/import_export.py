@@ -5,7 +5,7 @@ from bpy_extras.io_utils import ExportHelper
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import has_shape_key, valid_shape_key, pad_text
-from ..utils.ext_data import check_update, refresh_composer_info
+from ..utils.ext_data import refresh_data
 
 
 class OBJECT_OT_mio3sk_import_composer_rules(Mio3SKOperator):
@@ -82,7 +82,7 @@ class OBJECT_OT_mio3sk_import_composer_rules(Mio3SKOperator):
                 ext.composer_type = comp_entry.get("type", "ALL")
                 imported_count += 1
 
-        refresh_composer_info(obj)
+        refresh_data(context, obj, check=True, composer=True)
 
         self.report({"INFO"}, "{}件のルールをインポートしました".format(imported_count))
         return {"FINISHED"}
@@ -202,8 +202,8 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
         if not has_shape_key(obj):
             obj.shape_key_add(name="Basis", from_mix=False)
 
-        check_update(context, obj)
-        check_update(context, source_obj)
+        refresh_data(context, obj, check=True)
+        refresh_data(context, source_obj, check=True)
 
         shape_keys = obj.data.shape_keys
         key_blocks = shape_keys.key_blocks
@@ -215,7 +215,7 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
                         if not base_prop_o.ext_data.get(keyname) or not base_prop_o.ext_data[keyname].select:
                             continue
                     obj.shape_key_add(name=keyname, from_mix=False)
-            check_update(context, obj)
+            refresh_data(context, obj, check=True, group=True)
 
         if self.import_tag_settings:
             prop_o.tag_list.clear()
@@ -261,7 +261,7 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
                         new_item.name = source.name
                         new_item.value = source.value
                         new_item.mask = source.mask
-            refresh_composer_info(obj)
+            refresh_data(context, obj, composer=True)
 
         context.window_manager.mio3sk.import_source = None
         if obj.type == "MESH":

@@ -7,14 +7,7 @@ from bpy.props import BoolProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key, valid_shape_key, move_shape_key_below
-from ..utils.ext_data import (
-    check_update,
-    refresh_filter_flag,
-    create_composer_rule,
-    refresh_ext_data,
-    get_group_ext,
-    copy_ext_info,
-)
+from ..utils.ext_data import refresh_data, add_ext_data, copy_ext_info, create_composer_rule
 from ..utils.mirror import get_mirror_name, parse_mirror_name, get_side_kind
 
 
@@ -71,7 +64,7 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
         active_kb.data.foreach_get("co", co_flat)
         new_kb.data.foreach_set("co", co_flat)
 
-        refresh_ext_data(context, obj, added=True)
+        refresh_data(context, obj, check=True)
         move_shape_key_below(obj, key_blocks.find(active_kb.name), move_idx)
 
         active_ext = obj.mio3sk.ext_data.get(active_kb.name)
@@ -80,8 +73,7 @@ class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
             new_ext["select"] = active_ext.select
             copy_ext_info(active_ext, new_ext)
 
-        check_update(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True, filter=True)
         return {"FINISHED"}
 
 
@@ -188,8 +180,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         else:
             obj.active_shape_key_index = key_blocks.find(active_kb.name)
 
-        check_update(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True, filter=True)
         self.print_time()
         return {"FINISHED"}
 
@@ -228,7 +219,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         new_kb_l.data.foreach_set("co", new_co_l.ravel())
         new_kb_r.data.foreach_set("co", new_co_r.ravel())
 
-        refresh_ext_data(context, obj, added=True)
+        add_ext_data(obj, {new_kb_l.name, new_kb_r.name})
 
         ext_l = prop_o.ext_data.get(new_kb_l.name)
         ext_r = prop_o.ext_data.get(new_kb_r.name)
@@ -341,8 +332,7 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
 
         obj.active_shape_key_index = key_blocks.find(active_kb.name)
 
-        check_update(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True, filter=True)
 
         self.print_time()
         return {"FINISHED"}
@@ -394,7 +384,7 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
         new_co = new_co.reshape(-1)
         new_kb.data.foreach_set("co", new_co)
 
-        refresh_ext_data(context, obj, added=True)  # extを作る
+        add_ext_data(obj, {new_kb.name})  # extを作る
 
         active_ext = obj.mio3sk.ext_data.get(active_kb.name)
         ext = obj.mio3sk.ext_data.get(new_kb.name)
@@ -447,8 +437,7 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
         for merged_name, l_name, r_name in created_pairs:
             self.move_to_appropriate_position(obj, key_blocks, merged_name, l_name, r_name)
 
-        check_update(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True, filter=True)
         self.print_time()
         return {"FINISHED"}
 
@@ -535,7 +524,7 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
 
         merged_kb.data.foreach_set("co", merged_co.ravel())
 
-        refresh_ext_data(context, obj, added=True)
+        add_ext_data(obj, {base_name})
 
         return merged_kb
 

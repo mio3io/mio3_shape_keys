@@ -5,7 +5,7 @@ from bpy.types import Object
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import has_shape_key, is_sync_collection, get_unique_name, move_shape_key_below
-from ..utils.ext_data import check_update, get_group_ext, copy_ext_info
+from ..utils.ext_data import refresh_data
 from ..globals import SHAPE_KEYS_DIR, SHAPE_SYNC_RULES_DIR
 
 
@@ -55,12 +55,13 @@ class OBJECT_OT_mio3sk_shape_key_add(Mio3SKGlobalOperator):
 
             for o in collection_objects:
                 self.add_shape_key(o, self.name)
-                check_update(context, o)
+                refresh_data(context, o, check=True, group=True)
         else:
             if not obj.data.shape_keys:
                 obj.shape_key_add(name="Basis")
             new_name = get_unique_name(obj.data.shape_keys.key_blocks.keys(), "Key")
             self.add_shape_key(obj, new_name)
+            refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
     def add_shape_key(self, obj: Object, name: str):
@@ -97,13 +98,7 @@ class OBJECT_OT_mio3sk_add_below(Mio3SKOperator):
         new_key = obj.shape_key_add(name=new_name, from_mix=False)
         move_shape_key_below(obj, active_idx, move_idx)
 
-        check_update(context, obj)
-
-        group_ext = get_group_ext(obj, active_idx)
-        new_ext = obj.mio3sk.ext_data.get(new_key.name)
-        if group_ext and new_ext:
-            copy_ext_info(group_ext, new_ext)
-
+        refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
 
@@ -142,7 +137,7 @@ class OBJECT_OT_mio3sk_some_file(Mio3SKGlobalOperator):
                 addNewKey(row[0], context, obj)
 
         obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
-        check_update(context, obj)
+        refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
 
@@ -186,7 +181,8 @@ class OBJECT_OT_mio3sk_add_preset(Mio3SKGlobalOperator):
                 addNewKey(row[0], context, obj)
 
         obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
-        check_update(context, obj)
+
+        refresh_data(context, obj, check=True, group=True)
 
         if self.setup_rules:
             obj.mio3sk.use_composer = True
@@ -222,7 +218,7 @@ class OBJECT_OT_mio3sk_fill_keys(Mio3SKGlobalOperator):
             addNewKey(name, context, obj)
 
         obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
-        check_update(context, obj)
+        refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
 

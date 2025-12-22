@@ -6,7 +6,7 @@ from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from mathutils import Vector, kdtree
 from mathutils.geometry import intersect_point_tri_2d
 from ..classes.operator import Mio3SKGlobalOperator
-from ..utils.ext_data import check_update
+from ..utils.ext_data import refresh_data
 
 
 class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
@@ -121,6 +121,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                 self.report({"ERROR"}, "頂点数が異なるメッシュはスマートマッピングを使用してください")
                 return {"CANCELLED"}
             self.standard_prosess(context)
+            refresh_data(context, target_obj, check=True, group=True)
             self.print_time()
             return {"FINISHED"}
 
@@ -225,6 +226,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
         target_obj.active_shape_key_index = len(target_obj.data.shape_keys.key_blocks) - 1
 
+        refresh_data(context, target_obj, check=True, group=True)
         self.print_time()
         return {"FINISHED"}
 
@@ -458,7 +460,6 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
             else:
                 result = bpy.ops.object.shape_key_transfer()
 
-            check_update(context, obj)
             if result != {"FINISHED"}:
                 raise RuntimeError("頂点数が異なるメッシュはスマートマッピングを使用してください")
         except Exception as e:

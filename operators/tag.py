@@ -2,7 +2,7 @@ import bpy
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import get_unique_name, srgb2lnr
-from ..utils.ext_data import refresh_filter_flag, refresh_ext_data
+from ..utils.ext_data import refresh_filter_flag, refresh_tag_data
 from ..globals import TAG_COLOR_PRESET
 
 
@@ -42,6 +42,7 @@ class OBJECT_OT_mio3sk_tag_list_add(Mio3SKGlobalOperator):
         prop_o.tag_active_index = len(tag_list) - 1
 
         context.scene.mio3sk.show_tags = True
+        refresh_tag_data(context, obj)
         refresh_filter_flag(context, obj)
         obj.data.update()
         return {"FINISHED"}
@@ -71,6 +72,7 @@ class OBJECT_OT_mio3sk_tag_rename(Mio3SKGlobalOperator):
             self.report({"WARNING"}, "Tag not found")
             return {"CANCELLED"}
         tag_list[index].name = self.name
+        refresh_tag_data(context, obj)
         refresh_filter_flag(context, obj)
         obj.data.update()
         return {"FINISHED"}
@@ -101,6 +103,7 @@ class OBJECT_OT_mio3sk_tag_list_remove(Mio3SKGlobalOperator):
                 if ext.tags[i].name == tag_name:
                     ext.tags.remove(i)
 
+        refresh_tag_data(context, obj)
         refresh_filter_flag(context, obj)
         obj.data.update()
         return {"FINISHED"}
@@ -191,7 +194,7 @@ class OBJECT_OT_mio3sk_assign_tag(Mio3SKOperator):
             for ext in prop_o.ext_data:
                 ext["select"] = False
 
-        refresh_ext_data(context, obj)
+        refresh_tag_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 
@@ -231,6 +234,7 @@ class OBJECT_OT_mio3sk_clear_tag(Mio3SKGlobalOperator):
             ext.tags.clear()
 
         self.report({"INFO"}, "{}個のシェイプキーのタグを初期化しました".format(len(selected_exts)))
+        refresh_tag_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 
@@ -277,6 +281,7 @@ class OBJECT_OT_mio3sk_select_tag(Mio3SKGlobalOperator):
                 else:
                     tag["active"] = False
 
+        refresh_tag_data(context, obj)
         refresh_filter_flag(context, obj)
         return {"FINISHED"}
 

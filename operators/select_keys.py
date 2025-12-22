@@ -301,10 +301,10 @@ class OBJECT_OT_mio3sk_select_group_toggle(MIO3SKSelectKeysBase):
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
 
     key: StringProperty(name="Key")
-    ctrl: BoolProperty(name="Ctrl", default=False, options={"SKIP_SAVE"})
+    alt: BoolProperty(name="Alt", default=False, options={"SKIP_SAVE"})
 
     def invoke(self, context, event):
-        self.ctrl = event.ctrl
+        self.alt = event.alt
         return self.execute(context)
 
     def execute(self, context):
@@ -314,7 +314,7 @@ class OBJECT_OT_mio3sk_select_group_toggle(MIO3SKSelectKeysBase):
             return None
 
         active_ext = prop_o.ext_data.get(self.key)
-        if active_ext.is_group and self.ctrl:
+        if active_ext.is_group and self.alt:
             prop_o = obj.mio3sk
             current = False
             for kb in obj.data.shape_keys.key_blocks:

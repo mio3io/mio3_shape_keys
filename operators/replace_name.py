@@ -3,7 +3,7 @@ import bpy
 from bpy.props import BoolProperty, IntProperty, StringProperty
 from ..utils.utils import has_shape_key, is_local_obj, valid_shape_key, is_sync_collection
 from ..classes.operator import Mio3SKOperator
-from ..utils.ext_data import rename_ext_data, refresh_ext_data
+from ..utils.ext_data import rename_ext_data, refresh_data
 
 
 class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
@@ -55,6 +55,7 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
     def execute(self, context):
         obj = context.active_object
         prop_o = obj.mio3sk
+        prop_w = context.window_manager.mio3sk
         rename_search = self.rename_search.strip()
         rename_replace = self.rename_replace.strip()
 
@@ -73,13 +74,18 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
         else:
             target_objects = [obj]
 
+        prop_w.operator_objects.clear()
         for ob in target_objects:
-            for key in ob.data.shape_keys.key_blocks[1:]:
+            key_blocks = ob.data.shape_keys.key_blocks
+            for key in key_blocks[1:]:
                 new_name = self.rep_name(key.name, rename_search, rename_replace, self.use_regex)
-                if key.name != new_name:
+                if key.name != new_name and new_name not in key_blocks:
                     key.name = new_name
                     rename_ext_data(context, ob, key.name, new_name)
-                    refresh_ext_data(context, ob, added=True, removed=True)
+                else:
+                    self.report({"INFO"}, "Skip: '{}' in '{}' (conflict)".format(key.name, ob.name))
+            refresh_data(context, ob, check=True, group=True, filter=True)
+            prop_w.operator_objects.add().obj = ob
         return {"FINISHED"}
 
     @staticmethod

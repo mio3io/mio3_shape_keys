@@ -2,7 +2,7 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
-from ..utils.ext_data import check_update
+from ..utils.ext_data import refresh_data
 from ..utils.utils import is_local_obj, has_shape_key
 
 
@@ -87,7 +87,7 @@ class OBJECT_OT_mio3sk_remove(Mio3SKOperator):
             obj.mio3sk.ext_data.clear()
             obj.mio3sk.store_names.clear()
 
-        check_update(context, obj)
+        refresh_data(context, obj, check=True, group=True, filter=True)
         return {"FINISHED"}
 
 

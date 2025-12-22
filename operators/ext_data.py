@@ -2,13 +2,7 @@ import bpy
 import json
 from bpy.props import StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
-from ..utils.ext_data import (
-    check_update,
-    refresh_ext_data,
-    refresh_filter_flag,
-    clear_filter,
-    refresh_composer_info,
-)
+from ..utils.ext_data import clear_filter, refresh_data
 from ..utils.utils import has_shape_key, valid_shape_key, is_sync_collection
 
 
@@ -69,10 +63,26 @@ class OBJECT_OT_mio3sk_refresh_ext_data(Mio3SKGlobalOperator):
 
         for obj in bpy.data.objects:
             if has_shape_key(obj):
-                check_update(context, obj)
-                refresh_ext_data(context, obj, True, True)
-                refresh_filter_flag(context, obj)
-                refresh_composer_info(obj)
+                prop_o = obj.mio3sk
+
+                refresh_data(context, obj, check=True)
+
+                # checkのstoreと無関係に強制クリーンアップ
+                latest_key_names = obj.data.shape_keys.key_blocks.keys()
+                ext_data_key_names = prop_o.ext_data.keys()
+
+                # キーの削除
+                for i in range(len(prop_o.ext_data) - 1, -1, -1):
+                    if prop_o.ext_data[i].name not in latest_key_names:
+                        prop_o.ext_data.remove(i)
+
+                # キーの追加
+                for name in latest_key_names:
+                    if name not in ext_data_key_names:
+                        item = prop_o.ext_data.add()
+                        item.name = name
+
+                refresh_data(context, obj, group=True, composer=True, tag=True, filter=True)
 
         for area in context.screen.areas:
             if area.type == "OUTLINER":
@@ -116,9 +126,8 @@ class OBJECT_OT_mio3sk_clear_ext_data(Mio3SKGlobalOperator):
         prop_o.tag_list.clear()
         prop_o.preset_list.clear()
         prop_o.syncs = None
-        check_update(context, obj)
-        refresh_filter_flag(context, obj)
-        refresh_composer_info(obj)
+
+        refresh_data(context, obj, check=True, composer=True, filter=True)
 
         for area in context.screen.areas:
             if area.type == "OUTLINER":
@@ -141,7 +150,7 @@ class OBJECT_OT_mio3sk_clear_filter(Mio3SKOperator):
         if not has_shape_key(obj):
             return {"CANCELLED"}
         clear_filter(context, obj, clear_filter_select=True)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, filter=True)
 
         return {"FINISHED"}
 

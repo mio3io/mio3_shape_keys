@@ -2,7 +2,7 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key
-from ..utils.ext_data import get_key_groups, check_update, refresh_ext_data, refresh_filter_flag
+from ..utils.ext_data import get_key_groups, refresh_data
 
 
 class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
@@ -95,9 +95,7 @@ class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
         obj.active_shape_key_index = key_blocks.find(current_key_name)
 
         prop_w.sort_source = None
-        check_update(context, obj)
-        refresh_ext_data(context, obj)
-        refresh_filter_flag(context, obj)
+        refresh_data(context, obj, check=True, group=True, filter=True)
         self.print_time()
         return {"FINISHED"}
 
