@@ -3,7 +3,7 @@ import bpy
 import numpy as np
 from mathutils import Vector, kdtree
 from bpy.types import Object, ShapeKey
-from bpy.props import BoolProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key, valid_shape_key, move_shape_key_below
@@ -95,6 +95,12 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         options={"SKIP_SAVE"},
     )
     remove_source: BoolProperty(name="元のシェイプキーを削除", options={"SKIP_SAVE"})
+    smoothing_radius: FloatProperty(
+        name="スムージング半径",
+        default=0,
+        min=0.0,
+        step=1,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -107,10 +113,6 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
             return {"CANCELLED"}
 
         selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
-        # selected_len = len(selected_names)
-        # if not selected_len:
-        #     return self.execute(context)
-
         if selected_names and obj.active_shape_key.name in selected_names:
             self.mode = "SELECTED"
         return context.window_manager.invoke_props_dialog(self)
@@ -132,6 +134,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         col = layout.column()
         col.prop(self, "setup_rules")
         col.prop(self, "remove_source")
+        col.prop(self, "smoothing_radius")
 
     def execute(self, context):
         self.start_time()
@@ -203,19 +206,27 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         active_kb.data.foreach_get("co", shape_co)
         shape_co = shape_co.reshape(-1, 3)
 
-        new_co_l = basis_co.copy()
-        new_co_r = basis_co.copy()
-        for i in range(v_len):
-            x = basis_co[i, 0]
-            if x > 0:
-                new_co_l[i] = shape_co[i]
-            elif x < 0:
-                new_co_r[i] = shape_co[i]
-            else:
-                delta = shape_co[i] - basis_co[i]
-                new_co_l[i] = basis_co[i] + (delta * 0.5)
-                new_co_r[i] = basis_co[i] + (delta * 0.5)
+        deform = shape_co - basis_co
+        radius = float(self.smoothing_radius)
+        if radius <= 0.0:
+            x = basis_co[:, 0]
+            is_pos = x > np.float32(0.0)
+            is_neg = x < np.float32(0.0)
+            is_center = ~(is_pos | is_neg)
+            weight_l = is_pos.astype(np.float32) + is_center.astype(np.float32) * np.float32(0.5)
+            weight_r = is_neg.astype(np.float32) + is_center.astype(np.float32) * np.float32(0.5)
+        else:
+            # x=-radius -> R=100%, x=+radius -> L=100%
+            radius_f = np.float32(radius)
+            x = basis_co[:, 0]
+            t = (x + radius_f) / (np.float32(2.0) * radius_f)
+            t = np.clip(t, np.float32(0.0), np.float32(1.0))
+            t = t * t * (np.float32(3.0) - np.float32(2.0) * t)
+            weight_l = t
+            weight_r = np.float32(1.0) - weight_l
 
+        new_co_l = basis_co + deform * weight_l[:, None]
+        new_co_r = basis_co + deform * weight_r[:, None]
         new_kb_l.data.foreach_set("co", new_co_l.ravel())
         new_kb_r.data.foreach_set("co", new_co_r.ravel())
 
@@ -238,6 +249,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
                 create_composer_rule(ext_r, "-X", active_kb.name)
 
         return new_kb_l, new_kb_r
+
 
 
 class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
