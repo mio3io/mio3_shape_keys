@@ -313,9 +313,10 @@ def refresh_ui_select(obj: Object):
     prop_o.visible_len = len_ext - sum(filter_data)
 
 
-def create_composer_rule(ext, composer_type, name, value=1.0):
+def create_composer_rule(ext, composer_type, name, value=1.0, smoothing_radius=0.0):
     ext.composer_enabled = True
     ext.composer_type = composer_type
+    ext.composer_smoothing_radius = smoothing_radius
     ext.composer_source.clear()
     source = ext.composer_source.add()
     source.name = name

@@ -215,6 +215,14 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         options=set(),
     )
     composer_source_mask: StringProperty(name="Composer Mask")
+    composer_smoothing_radius: FloatProperty(
+        name="Composer Smoothing Radius",
+        default=0,
+        min=0.0,
+        step=0.1,
+        precision=3,
+        options=set(),
+    )
     protect_delta: BoolProperty(
         name="Basis適用時に表情を保護する",
         description="まばたきやウィンク、△くちなど、Basis適用で崩れるキーに設定する",

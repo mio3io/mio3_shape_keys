@@ -374,18 +374,23 @@ class OBJECT_OT_mio3sk_composer_apply(Mio3SKComposerEditOperator):
         if ext.composer_type == "MIRROR":
             result_co = self.mirror(basis_co, buffer_co, mirror_indices)
         elif ext.composer_type in {"+X", "-X"}:
-            result_co = np.zeros_like(buffer_co)
-            center_mask = np.isclose(basis_co[:, 0], 0.0, atol=0.001)
-            if ext.composer_type == "+X":
-                positive_mask = basis_co[:, 0] > 0
-                result_co[positive_mask] = buffer_co[positive_mask]
-                result_co[center_mask] = basis_co[center_mask] + (buffer_co[center_mask] - basis_co[center_mask]) * 0.5
-                result_co[~(positive_mask | center_mask)] = basis_co[~(positive_mask | center_mask)]
+            radius = ext.composer_smoothing_radius
+            x = basis_co[:, 0]
+            if radius <= 0.0:
+                is_pos = x > np.float32(0.0)
+                is_neg = x < np.float32(0.0)
+                is_center = ~(is_pos | is_neg)
+                if ext.composer_type == "+X":
+                    weight = is_pos.astype(np.float32) + is_center.astype(np.float32) * np.float32(0.5)
+                else:
+                    weight = is_neg.astype(np.float32) + is_center.astype(np.float32) * np.float32(0.5)
             else:
-                negative_mask = basis_co[:, 0] < 0
-                result_co[negative_mask] = buffer_co[negative_mask]
-                result_co[center_mask] = basis_co[center_mask] + (buffer_co[center_mask] - basis_co[center_mask]) * 0.5
-                result_co[~(negative_mask | center_mask)] = basis_co[~(negative_mask | center_mask)]
+                radius_f = np.float32(abs(radius))
+                t = (x + radius_f) / (np.float32(2.0) * radius_f)
+                t = np.clip(t, np.float32(0.0), np.float32(1.0))
+                t = t * t * (np.float32(3.0) - np.float32(2.0) * t)
+                weight = t if ext.composer_type == "+X" else (np.float32(1.0) - t)
+            result_co = basis_co + (buffer_co - basis_co) * weight[:, None]
         elif ext.composer_type == "INVERT":
             basis_co_flat = basis_co.ravel()
             result_co = basis_co_flat - (buffer_co_flat - basis_co_flat)

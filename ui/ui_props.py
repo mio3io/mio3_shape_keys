@@ -45,8 +45,11 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             sub.label(text="", icon="LINKED")
 
             if prop_s.show_props_composer:
+                box_composer.use_property_split = True
                 box_composer.prop(ext, "composer_type", text="Type")
-
+                if ext.composer_type == "+X" or ext.composer_type == "-X":
+                    box_composer.prop(ext, "composer_smoothing_radius", text="Smoothing")
+                box_composer.use_property_split = False
                 if not ext.composer_enabled:
                     sub = box_composer.row(align=True)
                     sub.scale_y = 1.1

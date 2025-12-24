@@ -1,10 +1,12 @@
 import re
 import bpy
 import numpy as np
+import gpu
 from mathutils import Vector, kdtree
-from bpy.types import Object, ShapeKey
+from bpy.types import Object, ShapeKey, SpaceView3D
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
+from gpu_extras.batch import batch_for_shader
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key, valid_shape_key, move_shape_key_below
 from ..utils.ext_data import refresh_data, add_ext_data, copy_ext_info, create_composer_rule
@@ -84,7 +86,7 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
     bl_options = {"REGISTER", "UNDO"}
 
     mode: EnumProperty(
-        name="Target",
+        name="Source",
         items=[("ACTIVE", "Active Shape Key", ""), ("SELECTED", "Selected Shape Keys", "")],
         options={"SKIP_SAVE"},
     )
@@ -99,8 +101,12 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         name="スムージング半径",
         default=0,
         min=0.0,
-        step=1,
+        step=0.1,
+        precision=3,
     )
+
+    _guide_draw_handle = None
+    _guide_bbox_yz = None
 
     @classmethod
     def poll(cls, context):
@@ -112,10 +118,71 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         if not is_local_obj(obj) or not valid_shape_key(obj):
             return {"CANCELLED"}
 
+        self._add_guide(context)
+
         selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
         if selected_names and obj.active_shape_key.name in selected_names:
             self.mode = "SELECTED"
         return context.window_manager.invoke_props_dialog(self)
+
+    def cancel(self, context):
+        self._remove_guide(context)
+
+    def _tag_view3d_redraw(self, context):
+        for area in context.window.screen.areas:
+            if area.type == "VIEW_3D":
+                area.tag_redraw()
+
+    def _draw_guide(self, context):
+        if self._guide_bbox_yz is None:
+            return
+
+        obj = context.active_object
+        min_y, max_y, min_z, max_z = self._guide_bbox_yz
+
+        radius = self.smoothing_radius
+        matrix_world = obj.matrix_world
+        xs = [0.0]
+        if radius > 0.0:
+            xs.extend([-radius, radius])
+
+        shader = gpu.shader.from_builtin("UNIFORM_COLOR")
+        shader.bind()
+
+        for x in xs:
+            p0 = matrix_world @ Vector((x, min_y, min_z))
+            p1 = matrix_world @ Vector((x, min_y, max_z))
+            p2 = matrix_world @ Vector((x, max_y, max_z))
+            p3 = matrix_world @ Vector((x, max_y, min_z))
+
+            coords = (p0, p1, p1, p2, p2, p3, p3, p0)
+            batch = batch_for_shader(shader, "LINES", {"pos": coords})
+
+            gpu.state.line_width_set(2.0 if x == 0.0 else 1.0)
+
+            shader.uniform_float("color", (1.00, 0.40, 0.66, 1.0))
+            batch.draw(shader)
+
+        gpu.state.line_width_set(1.0)
+
+    def _add_guide(self, context):
+        if self._guide_draw_handle is None:
+            self._guide_draw_handle = SpaceView3D.draw_handler_add(
+                self._draw_guide, (context,), "WINDOW", "POST_VIEW"
+            )
+            self._tag_view3d_redraw(context)
+
+            bb = context.active_object.bound_box
+            ys = [v[1] for v in bb]
+            zs = [v[2] for v in bb]
+            self._guide_bbox_yz = (min(ys), max(ys), min(zs), max(zs))
+
+    def _remove_guide(self, context):
+        if self._guide_draw_handle is not None:
+            SpaceView3D.draw_handler_remove(self._guide_draw_handle, "WINDOW")
+            self._guide_draw_handle = None
+            self._guide_bbox_yz = None
+            self._tag_view3d_redraw(context)
 
     def draw(self, context):
         layout = self.layout
@@ -138,6 +205,8 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
 
     def execute(self, context):
         self.start_time()
+
+        self._remove_guide(context)
 
         obj = context.active_object
         if not is_local_obj(obj) or not valid_shape_key(obj):
@@ -207,18 +276,16 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
         shape_co = shape_co.reshape(-1, 3)
 
         deform = shape_co - basis_co
-        radius = float(self.smoothing_radius)
+        radius = self.smoothing_radius
+        x = basis_co[:, 0]
         if radius <= 0.0:
-            x = basis_co[:, 0]
             is_pos = x > np.float32(0.0)
             is_neg = x < np.float32(0.0)
             is_center = ~(is_pos | is_neg)
             weight_l = is_pos.astype(np.float32) + is_center.astype(np.float32) * np.float32(0.5)
             weight_r = is_neg.astype(np.float32) + is_center.astype(np.float32) * np.float32(0.5)
         else:
-            # x=-radius -> R=100%, x=+radius -> L=100%
             radius_f = np.float32(radius)
-            x = basis_co[:, 0]
             t = (x + radius_f) / (np.float32(2.0) * radius_f)
             t = np.clip(t, np.float32(0.0), np.float32(1.0))
             t = t * t * (np.float32(3.0) - np.float32(2.0) * t)
@@ -245,11 +312,10 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
             if self.remove_source:
                 create_composer_rule(ext_r, "MIRROR", new_kb_l.name)
             else:
-                create_composer_rule(ext_l, "+X", active_kb.name)
-                create_composer_rule(ext_r, "-X", active_kb.name)
+                create_composer_rule(ext_l, "+X", active_kb.name, smoothing_radius=self.smoothing_radius)
+                create_composer_rule(ext_r, "-X", active_kb.name, smoothing_radius=self.smoothing_radius)
 
         return new_kb_l, new_kb_r
-
 
 
 class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
