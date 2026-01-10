@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 id = "mio3_shape_keys"
 name = "Mio3 Shape Keys"
-version = "3.0.0-beta-2025121503"
+version = "3.0.0-beta-20260110"
 tagline = "ShapeKey Tools"
 maintainer = "Mio"
 type = "add-on"
@@ -9,4 +9,4 @@ tags = ["Mesh", "Modeling"]
 blender_version_min = "4.2.0"
 license = ["SPDX:GPL-3.0-or-later"]
 website = "https://github.com/mio3io/mio3_shape_keys"
-copyright = ["2025 Mio"]
+copyright = ["2026 Mio"]
