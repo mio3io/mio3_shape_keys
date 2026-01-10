@@ -83,7 +83,8 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
                     key.name = new_name
                     rename_ext_data(context, ob, key.name, new_name)
                 else:
-                    self.report({"INFO"}, "Skip: '{}' in '{}' (conflict)".format(key.name, ob.name))
+                    if key.name != new_name:
+                        self.report({"INFO"}, "Skip: '{}' in '{}' (conflict)".format(key.name, ob.name))
             refresh_data(context, ob, check=True, group=True, filter=True)
             prop_w.operator_objects.add().obj = ob
         return {"FINISHED"}

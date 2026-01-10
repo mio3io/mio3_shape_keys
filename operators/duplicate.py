@@ -539,6 +539,9 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
                 continue
 
             mirror_name = get_mirror_name(name)
+            if not mirror_name or mirror_name == name:
+                continue
+
             mirror_name_resolved = None
             if mirror_name in selected_set:
                 mirror_name_resolved = mirror_name

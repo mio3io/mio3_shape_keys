@@ -148,8 +148,8 @@ def callback_show_only_shape_key():
 def callback_rename(context, obj, old_name, new_name):
     pref = get_preferences()
     if pref.use_rename_mirror:
-        old_mirror_name = get_mirror_name(old_name)
-        new_mirror_name = get_mirror_name(new_name)
+        old_mirror_name = get_mirror_name(old_name) or old_name
+        new_mirror_name = get_mirror_name(new_name) or new_name
         key_blocks = obj.data.shape_keys.key_blocks
         if old_mirror_name in key_blocks and new_mirror_name not in key_blocks:
             key_blocks[old_mirror_name].name = new_mirror_name
