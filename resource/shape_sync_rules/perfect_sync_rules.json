@@ -1,0 +1,121 @@
+{
+    "version": 1,
+    "name": "Mio3 Shape Keys Extend Data",
+    "rules": [
+        {
+            "name": "browDownRight",
+            "type": "MIRROR",
+            "source": [{ "name": "browDownLeft", "value": 1.0 }]
+        },
+        {
+            "name": "browOuterUpRight",
+            "type": "MIRROR",
+            "source": [{ "name": "browOuterUpLeft", "value": 1.0 }]
+        },
+        {
+            "name": "cheekSuckLeft",
+            "type": "+X",
+            "source": [{ "name": "cheekPuff", "value": 1.0 }]
+        },
+        {
+            "name": "cheekSuckRight",
+            "type": "-X",
+            "source": [{ "name": "cheekPuff", "value": 1.0 }]
+        },
+        {
+            "name": "cheekSquintRight",
+            "type": "MIRROR",
+            "source": [{ "name": "cheekSquintLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeBlinkRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeBlinkLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeLookDownRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeLookDownLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeLookInRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeLookInLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeLookOutRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeLookOutLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeLookUpRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeLookUpLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeSquintRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeSquintLeft", "value": 1.0 }]
+        },
+        {
+            "name": "eyeWideRight",
+            "type": "MIRROR",
+            "source": [{ "name": "eyeWideLeft", "value": 1.0 }]
+        },
+        {
+            "name": "jawRight",
+            "type": "MIRROR",
+            "source": [{ "name": "jawLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthDimpleRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthDimpleLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthFrownRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthFrownLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthLowerDownRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthLowerDownLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthPressRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthPressLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthSmileRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthSmileLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthStretchRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthStretchLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthTightenerRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthTightenerLeft", "value": 1.0 }]
+        },
+        {
+            "name": "mouthUpperUpRight",
+            "type": "MIRROR",
+            "source": [{ "name": "mouthUpperUpLeft", "value": 1.0 }]
+        },
+        {
+            "name": "noseSneerRight",
+            "type": "MIRROR",
+            "source": [{ "name": "noseSneerLeft", "value": 1.0 }]
+        }
+    ]
+}

@@ -1,35 +1,84 @@
 import os
-import bpy
-
+from bpy.utils import previews
 
 ICON_DIR = os.path.join(os.path.dirname(__file__), "icons")
 
-preview_collections = {}
+icon_names = [
+    "icon",
+    "default",
+    "primary",
+    "primary_history",
+    "move",
+    "face_all",
+    "face_mirror",
+    "face_left",
+    "face_right",
+    "parent",
+    "linked",
+    "up_ex",
+    "down_ex",
+    "eraser",
+    "composer",
+    "tag",
+    "tag_active",
+    "split",
+    "join",
+    "opposite",
+    "edit",
+    "duplicate",
+    "switch",
+    "apply_basis",
+    "symmetrize",
+    "smooth",
+    "mirror",
+    "invert",
+    "delta_invert",
+    "sort",
+    "join_key",
+    "refresh",
+    "setting",
+    "auto_on",
+    "filter_reset",
+    "preset",
+    "toggle",
+    "groups",
+]
+
+class IconSet:
+    def __init__(self):
+        self._icons = None
+    
+    def load(self):
+        self._icons = previews.new()
+        # for entry in os.scandir(icons_dir):
+        #     if entry.name.endswith(".png"):
+        #         name = os.path.splitext(entry.name)[0]
+        #         self._icons.load(name, os.path.join(icons_dir, entry.name), "IMAGE")
+        for name in icon_names:
+            icon_path = os.path.join(ICON_DIR, "{}.png".format(name))
+            if os.path.exists(icon_path):
+                self._icons.load(name, icon_path, "IMAGE")
+                setattr(self, name, self._icons[name].icon_id)
+
+    def unload(self):
+        if self._icons:
+            previews.remove(self._icons)
+            self._icons = None
+
+#     def __getattr__(self, name):
+#         if self._icons and name in self._icons:
+#             return self._icons[name].icon_id
+#         if self._icons and "icon" in self._icons:
+#             return self._icons["icon"].icon_id
+#         return 0
+
+
+icons = IconSet()
 
 
 def register():
-    import bpy.utils.previews
-
-    icons = bpy.utils.previews.new()
-    icons.load("DEFAULT", os.path.join(ICON_DIR, "default.png"), "IMAGE")
-    icons.load("PRIMARY", os.path.join(ICON_DIR, "primary.png"), "IMAGE")
-    icons.load("PRIMARY_HISTORY", os.path.join(ICON_DIR, "primary_history.png"), "IMAGE")
-    icons.load("MOVE", os.path.join(ICON_DIR, "move.png"), "IMAGE")
-
-    icons.load("FACE_ALL", os.path.join(ICON_DIR, "face_all.png"), "IMAGE")
-    icons.load("FACE_MIRRIR", os.path.join(ICON_DIR, "face_mirror.png"), "IMAGE")
-    icons.load("FACE_L", os.path.join(ICON_DIR, "face_left.png"), "IMAGE")
-    icons.load("FACE_R", os.path.join(ICON_DIR, "face_right.png"), "IMAGE")
-
-    icons.load("PARENT", os.path.join(ICON_DIR, "parent.png"), "IMAGE")
-    icons.load("LINKED", os.path.join(ICON_DIR, "linked.png"), "IMAGE")
-
-    icons.load("UP_EX", os.path.join(ICON_DIR, "arrow_up_ex.png"), "IMAGE")
-    icons.load("DOWN_EX", os.path.join(ICON_DIR, "arrow_down_ex.png"), "IMAGE")
-    preview_collections["icons"] = icons
+    icons.load()
 
 
 def unregister():
-    for pcoll in preview_collections.values():
-        bpy.utils.previews.remove(pcoll)
-    preview_collections.clear()
+    icons.unload()

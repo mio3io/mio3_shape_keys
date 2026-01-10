@@ -1,99 +1,104 @@
-import bpy
-from bpy.app.handlers import persistent
-
-from . import properties
-from . import dictionary
+from . import preferences
 from . import icons
-from . import panel
-from . import op_blend_shapekey
-from . import op_sync_shapekey
-from . import op_add_shapekey
-from . import op_remove_shapekey
-from . import op_move_shapekey
-from . import op_sort_shapekey
-from . import op_rename_shapekey
-from . import op_apply_shapekey
-from . import op_options
+from . import properties
+from . import translation
+from . import keymaps
+from . import subscribe
+
+# Mesh
+from .operators import reset
+from .operators import blend
+from .operators import repair
+from .operators import invert
+from .operators import mirror
+from .operators import smooth_shape
+from .operators import symmetrize
+from .operators import clean
+from .operators import copy
+
+# Object
+from .operators import composer
+from .operators import add
+from .operators import duplicate
+from .operators import join
+from .operators import transfer
+from .operators import remove
+from .operators import move
+from .operators import sort
+from .operators import replace_name
+from .operators import apply
+from .operators import apply_mask
+from .operators import apply_modifier
+from .operators import switch
+from .operators import genmesh
+
+from .operators import weight
+from .operators import select_verts
+from .operators import select_keys
+from .operators import group
+from .operators import tag
+from .operators import preset
+from .operators import ext_data
+from .operators import import_export
+
+from .ui import ui_main
+from .ui import ui_side
+from .ui import ui_props
+from .ui import ui_settings
+from .ui import ui_menu
 
 
-bl_info = {
-    "name": "Mio3 ShapeKey",
-    "author": "mio3io",
-    "version": (2, 5, 5),
-    "blender": (3, 0, 0),
-    "warning": "",
-    "location": "View3D > Sidebar",
-    "description": "Synchronize shape keys with the same name in the certain collection.",
-    "category": "Object",
-}
-
-
-def update_panel(self, context):
-    is_exist = hasattr(bpy.types, "MIO3SK_PT_main")
-    category = bpy.context.preferences.addons[__package__].preferences.category
-
-    if is_exist:
-        try:
-            bpy.utils.unregister_class(panel.MIO3SK_PT_main)
-        except:
-            pass
-
-    panel.MIO3SK_PT_main.bl_category = category
-    bpy.utils.register_class(panel.MIO3SK_PT_main)
-
-
-class MIO3SK_Preferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
-
-    category: bpy.props.StringProperty(
-        name="Tab",
-        description="Tab",
-        default="Tool",
-        update=update_panel,
-    )
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "category")
+modules = [
+    preferences,
+    icons,
+    reset,
+    blend,
+    repair,
+    invert,
+    mirror,
+    smooth_shape,
+    symmetrize,
+    clean,
+    copy,
+    add,
+    duplicate,
+    join,
+    transfer,
+    remove,
+    move,
+    composer,
+    sort,
+    replace_name,
+    apply,
+    switch,
+    genmesh,
+    weight,
+    select_verts,
+    select_keys,
+    apply_mask,
+    apply_modifier,
+    group,
+    tag,
+    preset,
+    ext_data,
+    import_export,
+    ui_main,
+    ui_side,
+    ui_props,
+    ui_settings,
+    ui_menu,
+    keymaps,
+    properties,
+    subscribe,
+    translation,
+]
 
 
 def register():
-    dictionary.register(__name__)
-    icons.register()
-
-    bpy.utils.register_class(MIO3SK_Preferences)
-
-    properties.register()
-    panel.register()
-    op_blend_shapekey.register()
-    op_sync_shapekey.register()
-    op_add_shapekey.register()
-    op_remove_shapekey.register()
-    op_move_shapekey.register()
-    op_sort_shapekey.register()
-    op_rename_shapekey.register()
-    op_apply_shapekey.register()
-    op_options.register()
+    for module in modules:
+        module.register()
 
 
 def unregister():
-    properties.unregister()
-    panel.unregister()
-    op_blend_shapekey.unregister()
-    op_sync_shapekey.unregister()
-    op_add_shapekey.unregister()
-    op_remove_shapekey.unregister()
-    op_move_shapekey.unregister()
-    op_sort_shapekey.unregister()
-    op_rename_shapekey.unregister()
-    op_apply_shapekey.unregister()
-    op_options.unregister()
-
-    bpy.utils.unregister_class(MIO3SK_Preferences)
-
-    icons.unregister()
-    dictionary.unregister(__name__)
-
-
-if __name__ == "__main__":
-    register()
+    for module in reversed(modules):
+        module.unregister()
