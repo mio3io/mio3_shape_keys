@@ -10,7 +10,7 @@ from gpu_extras.batch import batch_for_shader
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key, valid_shape_key, move_shape_key_below
 from ..utils.ext_data import refresh_data, add_ext_data, copy_ext_info, create_composer_rule
-from ..utils.mirror import get_mirror_name, parse_mirror_name, get_side_kind
+from ..utils.mirror import get_mirror_name, parse_side_name
 
 
 class OBJECT_OT_mio3sk_duplicate(Mio3SKOperator):
@@ -530,11 +530,11 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
             if name in processed:
                 continue
 
-            parts = parse_mirror_name(name)
+            parts = parse_side_name(name)
             if not parts:
                 continue
 
-            side_kind = get_side_kind(parts.get("side") or "")
+            side_kind = parts["side_kind"]
             if not side_kind:
                 continue
 
