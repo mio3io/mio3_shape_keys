@@ -97,7 +97,7 @@ class OBJECT_OT_mio3sk_add_below(Mio3SKOperator):
         new_name = get_unique_name(key_blocks.keys(), "Key")
         new_key = obj.shape_key_add(name=new_name, from_mix=False)
         move_shape_key_below(obj, active_idx, move_idx)
-
+        obj.active_shape_key_index = key_blocks.find(new_key.name)
         refresh_data(context, obj, check=True, group=True)
         return {"FINISHED"}
 
