@@ -2,7 +2,7 @@ import bpy
 from bpy.props import BoolProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, has_shape_key
-from ..utils.ext_data import get_key_groups, refresh_data
+from ..utils.ext_data import get_key_groups, get_group_ext, refresh_data
 
 
 class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
@@ -11,9 +11,20 @@ class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
     bl_description = "Sort by ShapeKey Name"
     bl_options = {"REGISTER", "UNDO"}
 
+    method: EnumProperty(
+        name="Method",
+        items=[
+            ("ALL", "All", ""),
+            ("ACTIVE_GROUP", "アクティブグループのみソート", ""),
+            ("GROUP", "グループをソート", ""),
+            ("OBJECT", "他のオブジェクトの順に合わせる", ""),
+        ],
+        default="ALL",
+    )
+
+    keys: EnumProperty(name="Keys", items=[("ALL", "All", ""), ("ACTIVE_GROUP", "Active Group", "")])
     type: EnumProperty(name="Order", items=[("ASC", "ASC", ""), ("DESC", "DESC", "")])
     use_group: BoolProperty(name="グループごとにソート", default=True)
-    sort_group: BoolProperty(name="グループをソート")
 
     @classmethod
     def poll(cls, context):
@@ -33,34 +44,61 @@ class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
     def draw(self, context):
         layout = self.layout
         layout.use_property_decorate = False
+        layout.prop(self, "method")
         layout.use_property_split = True
-        layout.prop(self, "type", expand=True)
-        col = layout.column(align=True)
-        col.prop(self, "use_group")
-        col.prop(self, "sort_group")
-        box = layout.box()
-        box.label(text="他のオブジェクトに順番を合わせる", icon="SHAPEKEY_DATA")
-        box.prop(context.window_manager.mio3sk, "sort_source")
 
+        if self.method == "OBJECT":
+            box = layout.box()
+            box.label(text="他のオブジェクトの順に合わせる", icon="SHAPEKEY_DATA")
+            box.prop(context.window_manager.mio3sk, "sort_source")
+        else:
+            layout.prop(self, "type", expand=True)
+            if self.method == "ALL":
+                col = layout.column(align=True)
+                col.prop(self, "use_group")
+
+    # グループ並び替え
     def get_group_sort_names(self, obj):
         ext_data = obj.mio3sk.ext_data
-
         groups = get_key_groups(obj)
+        if len(groups) > 1:
+            ext = ext_data.get(groups[0][0].name)
+            if ext and ext.is_group:
+                groups = sorted(groups, key=lambda g: g[0].name.casefold(), reverse=self.type != "ASC")
+            else:
+                groups[1:] = sorted(groups[1:], key=lambda g: g[0].name.casefold(), reverse=self.type != "ASC")
 
-        # 各グループをソート
+        return [k.name for group in groups for k in group]
+
+    # グループごとにソート
+    def get_by_group_names(self, obj):
+        ext_data = obj.mio3sk.ext_data
+        groups = get_key_groups(obj)
         for i, group in enumerate(groups):
             header = [k for k in group if ext_data.get(k.name) and ext_data[k.name].is_group]
             childs = [k for k in group if not (ext_data.get(k.name) and ext_data[k.name].is_group)]
             childs.sort(key=lambda k: k.name.casefold(), reverse=self.type != "ASC")
             groups[i] = header + childs
 
-        # グループ並び替え
-        if self.sort_group and len(groups) > 1:
-            ext = ext_data.get(groups[0][0].name)
-            if ext and ext.is_group:
-                groups = sorted(groups, key=lambda g: g[0].name.casefold(), reverse=self.type != "ASC")
-            else:
-                groups[1:] = sorted(groups[1:], key=lambda g: g[0].name.casefold(), reverse=self.type != "ASC")
+        return [k.name for group in groups for k in group]
+
+    # アクティブグループのみをソート
+    def get_by_active_group_names(self, obj):
+        ext_data = obj.mio3sk.ext_data
+        active_index = obj.active_shape_key_index
+        active_header = get_group_ext(obj, active_index)
+
+        groups = get_key_groups(obj)
+        for i, group in enumerate(groups):
+            header = next((k for k in group if (ext_data.get(k.name) and ext_data[k.name].is_group)), None)
+            if active_header is None and header:
+                continue
+
+            if active_header is not None and ((header and header.name != active_header.name) or header is None):
+                continue
+
+            group.sort(key=lambda k: k.name.casefold(), reverse=self.type != "ASC")
+            groups[i] = group
 
         return [k.name for group in groups for k in group]
 
@@ -73,7 +111,7 @@ class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
 
         key_blocks = obj.data.shape_keys.key_blocks
 
-        if prop_w.sort_source:
+        if self.method == "OBJECT" and prop_w.sort_source:
             source_obj = prop_w.sort_source
             if not source_obj.data.shape_keys:
                 return {"CANCELLED"}
@@ -82,10 +120,17 @@ class OBJECT_OT_mio3sk_sort(Mio3SKOperator):
             matched = [name for name in source_names if name in target_names]
             unmatched = sorted([name for name in target_names if name not in source_names], key=str.lower)
             sorted_names = matched + unmatched
-        elif self.use_group:
+        elif self.method == "GROUP" and self.use_group:
             sorted_names = self.get_group_sort_names(obj)
+        elif self.method == "ACTIVE_GROUP":
+            sorted_names = self.get_by_active_group_names(obj)
+        elif self.use_group:
+            sorted_names = self.get_by_group_names(obj)
         else:
             sorted_names = sorted([kb.name for kb in key_blocks[1:]], key=str.lower, reverse=self.type != "ASC")
+
+        if sorted_names is None:
+            return {"CANCELLED"}
 
         current_key_name = obj.active_shape_key.name
         for key in sorted_names:
