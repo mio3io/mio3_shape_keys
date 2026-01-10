@@ -82,23 +82,6 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
         return context.window_manager.invoke_props_dialog(self)
 
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_decorate = False
-        layout.prop(self, "transfer", expand=True)
-        layout.use_property_split = True
-        if self.method == "KEY":
-            layout.prop(self, "target")
-        col = layout.column()
-        if self.transfer != "SMART":
-            col.enabled = False
-        col.prop(self, "mapping_mode", expand=True)
-        if self.mapping_mode == "UV":
-            layout.prop(self, "threshold_uv")
-        else:
-            layout.prop(self, "threshold")
-        layout.prop(self, "scale_normalize")
-
     def execute(self, context):
         self.start_time()
 
@@ -465,6 +448,23 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         except Exception as e:
             self.report({"ERROR"}, "「標準」モードのエラー: {}".format(str(e)))
             return {"FINISHED"}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_decorate = False
+        layout.prop(self, "transfer", expand=True)
+        layout.use_property_split = True
+        if self.method == "KEY":
+            layout.prop(self, "target")
+        col = layout.column()
+        if self.transfer != "SMART":
+            col.enabled = False
+        col.prop(self, "mapping_mode", expand=True)
+        if self.mapping_mode == "UV":
+            layout.prop(self, "threshold_uv")
+        else:
+            layout.prop(self, "threshold")
+        layout.prop(self, "scale_normalize")
 
 
 def register():

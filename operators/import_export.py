@@ -214,7 +214,7 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
                     if self.import_shape_keys_target == "SELECTED":
                         if not base_prop_o.ext_data.get(keyname) or not base_prop_o.ext_data[keyname].select:
                             continue
-                    obj.shape_key_add(name=keyname, from_mix=False)
+                    obj.shape_key_add(name=keyname, from_mix=False).value = 0.0
             refresh_data(context, obj, check=True, group=True)
 
         if self.import_tag_settings:

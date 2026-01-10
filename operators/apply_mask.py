@@ -42,7 +42,6 @@ class OBJECT_OT_mio3sk_apply_mask(Mio3SKOperator):
         return {"FINISHED"}
 
 
-
 classes = [
     OBJECT_OT_mio3sk_apply_mask,
 ]

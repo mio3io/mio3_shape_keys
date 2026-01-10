@@ -602,6 +602,9 @@ class OBJECT_OT_mio3sk_merge_lr(Mio3SKOperator):
 
         merged_kb.data.foreach_set("co", merged_co.ravel())
 
+        l_kb.value = 0.0
+        r_kb.value = 0.0
+
         add_ext_data(obj, {base_name})
 
         return merged_kb

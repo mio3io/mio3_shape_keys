@@ -226,7 +226,7 @@ def addNewKey(keyname, context, obj):
     shape_keys = obj.data.shape_keys
     if shape_keys and keyname in shape_keys.key_blocks:
         return
-    obj.shape_key_add(name=keyname, from_mix=False)
+    obj.shape_key_add(name=keyname, from_mix=False).value = 0.0
 
 
 classes = [
