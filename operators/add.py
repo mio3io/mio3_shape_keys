@@ -7,7 +7,7 @@ from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import has_shape_key, is_sync_collection, get_unique_name, move_shape_key_below
 from ..utils.ext_data import refresh_data
 from ..globals import SHAPE_KEYS_DIR, SHAPE_SYNC_RULES_DIR
-
+from ..utils import resources
 
 def get_collection_keys(obj: Object):
     collection_keys = []
@@ -149,11 +149,9 @@ class OBJECT_OT_mio3sk_add_preset(Mio3SKGlobalOperator):
     bl_options = {"REGISTER", "UNDO"}
 
     enum_items = [
-        ("vrc_viseme", "VRChat Viseme", "VRChat Viseme"),
-        ("mmd_light", "MMD Light", "MMD Light"),
-        ("perfect_sync", "Perfect Sync", "Perfect Sync"),
+        (key, item["name"], item["desc"]) for key, item in resources.shape_keys_items.items()
     ]
-    type: EnumProperty(name="Preset", default="vrc_viseme", items=enum_items)
+    type: EnumProperty(name="Preset", default=0, items=enum_items)
     setup_rules: BoolProperty(default=True, name="同期ルールを作成")
 
     @classmethod
@@ -187,7 +185,8 @@ class OBJECT_OT_mio3sk_add_preset(Mio3SKGlobalOperator):
         if self.setup_rules:
             obj.mio3sk.use_composer = True
             filepath = os.path.join(SHAPE_SYNC_RULES_DIR, self.type + "_rules.json")
-            bpy.ops.object.mio3sk_import_composer_rules("EXEC_DEFAULT", filepath=filepath)
+            if os.path.exists(filepath):
+                bpy.ops.object.mio3sk_import_composer_rules("EXEC_DEFAULT", filepath=filepath)
 
         return {"FINISHED"}
 

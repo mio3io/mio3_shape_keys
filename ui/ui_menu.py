@@ -2,6 +2,7 @@ import bpy
 from bpy.types import Menu, Panel
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..icons import icons
+from ..utils import resources
 
 
 class MIO3SK_MT_main(bpy.types.Menu):
@@ -98,9 +99,12 @@ class MIO3SK_MT_add_preset(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("object.mio3sk_add_preset", text="VRChat Viseme", icon="ADD").type = "vrc_viseme"
-        layout.operator("object.mio3sk_add_preset", text="MMD Lite", icon="ADD").type = "mmd_light"
-        layout.operator("object.mio3sk_add_preset", text="Perfect Sync", icon="ADD").type = "perfect_sync"
+        # layout.operator("object.mio3sk_add_preset", text="VRChat Viseme", icon="ADD").type = "vrc_viseme"
+        # layout.operator("object.mio3sk_add_preset", text="MMD Lite", icon="ADD").type = "mmd_light"
+        # layout.operator("object.mio3sk_add_preset", text="Perfect Sync", icon="ADD").type = "perfect_sync"
+        for key, item in resources.shape_keys_items.items():
+            layout.operator("object.mio3sk_add_preset", text=item["name"], icon="ADD").type = key
+
         layout.separator()
         layout.operator("object.mio3sk_add_file", icon="FILE")
 
