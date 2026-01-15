@@ -15,7 +15,7 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
     rename_search: StringProperty(name="Rename Search", default="", options={"SKIP_SAVE"})
     rename_replace: StringProperty(name="Rename Replace", default="", options={"SKIP_SAVE"})
     use_regex: BoolProperty(name="Use Regex")
-    replace_sync_collections: BoolProperty(name="replace_sync_collections", default=True)
+    replace_sync_collections: BoolProperty(name="Change other sync objects", default=True)
     index: IntProperty(name="Index", options={"HIDDEN", "SKIP_SAVE"}, default=-1)
 
     @classmethod
@@ -50,7 +50,7 @@ class OBJECT_OT_mio3sk_replace(Mio3SKOperator):
         split.prop(self, "use_regex", text="Use Regex")
         op = split.operator("wm.url_open", text="Syntax", icon="URL")
         op.url = "https://docs.python.org/3/library/re.html"
-        col.prop(self, "replace_sync_collections", text="Change other sync objects")
+        col.prop(self, "replace_sync_collections")
 
     def execute(self, context):
         obj = context.active_object

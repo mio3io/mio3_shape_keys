@@ -15,10 +15,6 @@ class MIO3SK_PT_side_main(Mio3SKSidePanel):
 
     def draw(self, context):
         layout = self.layout
-        # layout.label(text="Edit")
-        # layout.operator("mesh.mio3sk_smooth_spline", text="Relax test", icon_value=icons.smooth)
-        prop_w = context.window_manager.mio3sk
-
         col = layout.column(align=True)
         row = col.row(align=True)
         row.operator("mesh.mio3sk_reset", text="Reset", icon_value=icons.eraser)
@@ -38,9 +34,6 @@ class MIO3SK_PT_side_main(Mio3SKSidePanel):
         row = col.row(align=True)
         row.operator("mesh.mio3sk_copy", text="Copy", icon="COPYDOWN")
         row.operator("mesh.mio3sk_paste", text="Paste", icon="PASTEDOWN")
-
-        col = layout.column(align=True)
-        row = col.row(align=True)
 
 
 class MIO3SK_PT_sub_blend(Mio3SKSidePanel):
