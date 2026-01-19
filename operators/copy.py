@@ -26,18 +26,11 @@ class MESH_OT_mio3sk_paste(Mio3SKOperator):
 
     blend: FloatProperty(name="Blend", default=1, min=-2, max=2, step=10)
     add: BoolProperty(name="Add", default=False)
-    mirror: BoolProperty(name="X Mirror", description="Enable mesh symmetry in the X axis", default=False)
 
     @classmethod
     def poll(cls, context):
         obj = context.active_object
         return is_obj(obj) and context.window_manager.mio3sk.copy_source
-
-    def invoke(self, context, event):
-        obj = context.active_object
-        if obj.data.use_mirror_x:
-            self.mirror = True
-        return self.execute(context)
 
     def execute(self, context):
         self.start_time()
@@ -45,18 +38,18 @@ class MESH_OT_mio3sk_paste(Mio3SKOperator):
         if not is_local_obj(obj) or not valid_shape_key(obj):
             return {"CANCELLED"}
 
-        use_mirror_x = obj.data.use_mirror_x
-        obj.data.use_mirror_x = self.mirror
+        if obj.data.total_vert_sel == 0:
+            self.report({"WARNING"}, "No vertices selected")
+            return {"CANCELLED"}
 
         prop_w = context.window_manager.mio3sk
 
         blend_source_name = prop_w.copy_source
         if not obj.data.shape_keys.key_blocks.get(blend_source_name):
             return {"CANCELLED"}
-
+        
         bpy.ops.mesh.blend_from_shape(shape=blend_source_name, blend=self.blend, add=self.add)
 
-        obj.data.use_mirror_x = use_mirror_x
         self.print_time()
         return {"FINISHED"}
 

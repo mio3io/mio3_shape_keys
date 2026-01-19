@@ -434,7 +434,6 @@ class WM_PG_mio3sk(PropertyGroup):
     )
     copy_source: StringProperty(name="Copy Source", options=set())
     blend_source_name: StringProperty(name="Blend Source", update=callback_blend_source_name, options=set())
-    blend_smooth: BoolProperty(name="スムーズブレンド", default=False, options=set())
     tag_filter_type: EnumProperty(
         name="Tag Filter Type",
         items=[("OR", "OR", ""), ("AND", "AND", "")],

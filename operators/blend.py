@@ -24,18 +24,6 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
     blend: FloatProperty(name="Blend", default=1, min=-2, max=2, step=10, update=update_props)
     smooth: BoolProperty(name="Smooth", default=True)
     add: BoolProperty(name="Add", default=False)
-    blend_mode: EnumProperty(
-        name="Mode",
-        default="SHAPE",
-        items=[
-            ("SHAPE", "Shape", ""),
-            ("RADIAL", "Radial", ""),
-            ("LEFT", "Left", ""),
-            ("RIGHT", "Right", ""),
-            ("TOP", "Top", ""),
-            ("BOTTOM", "Bottom", ""),
-        ],
-    )
     falloff: EnumProperty(
         name="Falloff",
         items=[
@@ -43,8 +31,6 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
             ("linear", "Linear", ""),
         ],
     )
-    blend_width: FloatProperty(name="中心幅", default=1.0, soft_min=0.1, soft_max=1, step=10)
-    normalize: BoolProperty(name="Normalize", default=True)
     blend_source: StringProperty(name="Shape")
     from_history: StringProperty(name="履歴から選択", options={"SKIP_SAVE"})
     select_history: CollectionProperty(
@@ -60,7 +46,6 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
     
     def invoke(self, context, event):
         obj = context.active_object
-        prop_s = context.scene.mio3sk
         prop_w = context.window_manager.mio3sk
 
         if not is_local_obj(obj):
@@ -77,7 +62,6 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
                 self.select_history.add().name = history.name
 
         self.blend_source = prop_w.blend_source_name
-        self.smooth = prop_w.blend_smooth
         if event.alt:
             self.blend = -self.blend
         return self.execute(context)
@@ -105,24 +89,20 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         bm.verts.ensure_lookup_table()
 
         selected_verts = {v for v in bm.verts if v.select}
-        if obj.use_mesh_mirror_x and not self.blend_mode in {"LEFT", "RIGHT"}:
+        if obj.use_mesh_mirror_x:
             selected_verts.update(find_x_mirror_verts(bm, selected_verts))
+
+        if not selected_verts:
+            self.report({"WARNING"}, "No vertices selected")
+            return {"CANCELLED"}
         selected_verts_indices = [v.index for v in selected_verts]
 
         basis_co = np.array([basis_kb.data[i].co for i in selected_verts_indices])
         source_co = np.array([blend_source.data[i].co for i in selected_verts_indices])
         target_co = np.array([v.co for v in selected_verts])
 
-        if self.blend_mode == "SHAPE":
-            weights = self.calc_weights_shape(selected_verts, target_co)
-        elif self.blend_mode == "RADIAL":
-            weights = self.calc_weights_radial(selected_verts, target_co)
-        else:
-            weights = self.calc_weights_direction(target_co)
-
-        if self.normalize:
-            weights /= np.max(weights)
-
+        weights = self.calc_weights_shape(selected_verts, target_co)
+        weights /= np.max(weights)
         weights = weights * self.blend
         if self.add:
             diff = source_co - basis_co
@@ -138,36 +118,6 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         bmesh.update_edit_mesh(obj.data)
         self.print_time()
         return {"FINISHED"}
-
-    # ウェイト計算(方向)
-    def calc_weights_direction(self, target_co):
-        axis_index = 0 if self.blend_mode in {"LEFT", "RIGHT"} else 2
-        min_val, max_val = np.min(target_co[:, axis_index]), np.max(target_co[:, axis_index])
-        center_val = (min_val + max_val) / 2
-        grad_width = (max_val - min_val) * self.blend_width
-        if max_val == min_val:  # 差がゼロの場合の対処
-            weights = np.full(target_co.shape[0], 0.5)
-        else:
-            weights = (target_co[:, axis_index] - (center_val - grad_width / 2)) / grad_width
-            if self.blend_mode in {"LEFT", "BOTTOM"}:
-                weights = 1 - weights
-            weights = np.clip(weights, 0, 1)
-        return weights
-
-    # ウェイト計算(放射)
-    def calc_weights_radial(self, selected_verts, target_co):
-        center = np.mean(target_co, axis=0)
-        distances = np.linalg.norm(target_co - center, axis=1)
-        max_distance = np.max(distances)
-        if max_distance < 1e-6:
-            return np.ones(len(selected_verts))
-        if self.falloff == "gaussian":
-            sigma = max(max_distance / 3, 1e-4)
-            weights = self.gaussian(distances, 0, sigma)
-        else:
-            weights = 1 - (distances / (max_distance + 1e-6))
-        weights = np.clip(weights, 0, 1)
-        return weights
 
     # ウェイト計算(シェイプ)
     def calc_weights_shape(self, selected_verts, target_co):
@@ -248,13 +198,7 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         box.prop(self, "smooth")
         if self.smooth:
             col = box.column()
-            col.prop(self, "blend_mode")
-            if self.blend_mode in {"RADIAL", "SHAPE"}:
-                col.prop(self, "falloff")
-                col.prop(self, "normalize")
-            else:
-                col.prop(self, "blend_width")
-                col.prop(self, "normalize")
+            col.prop(self, "falloff")
 
 
 class WM_OT_blend_set_key(Mio3SKOperator):

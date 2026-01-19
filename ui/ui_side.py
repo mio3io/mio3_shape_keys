@@ -62,7 +62,6 @@ class MIO3SK_PT_sub_blend(Mio3SKSidePanel):
         split = col.split(factor=0.58)
         # row = split.row(align=True)
         # row.operator("mesh.mio3sk_blend", text="0.05")["blend"] = 0.05
-        split.prop(prop_w, "blend_smooth", text="Smooth")
 
 
 class MIO3SK_PT_sub_delta_repair(Mio3SKSidePanel):
