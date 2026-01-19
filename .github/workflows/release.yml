@@ -1,0 +1,49 @@
+name: Release ZIP
+
+on:
+  push:
+    tags:
+      - '*.*'
+      - '*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set variables
+        id: vars
+        run: |
+          echo "REPO_NAME=$(basename $GITHUB_REPOSITORY)" >> $GITHUB_ENV
+          echo "TAG_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "ZIP_NAME=$(basename $GITHUB_REPOSITORY)-${GITHUB_REF##*/}.zip" >> $GITHUB_ENV
+
+      - name: Prepare package directory
+        run: |
+          mkdir "$REPO_NAME"
+          rsync -av ./ "$REPO_NAME/" \
+            --exclude "$REPO_NAME" \
+            --exclude ".git" \
+            --exclude ".github" \
+            --exclude ".vscode" \
+            --exclude ".gitignore" \
+            --exclude ".gitattributes"\
+            --exclude "README.md"
+
+      - name: Create zip file
+        run: |
+          zip -r "$ZIP_NAME" "$REPO_NAME"
+      
+      - name: Create Release and Upload ZIP
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: ${{ env.ZIP_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
