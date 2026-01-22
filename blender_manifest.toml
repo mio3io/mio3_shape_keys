@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 id = "mio3_shape_keys"
 name = "Mio3 Shape Keys"
-version = "3.0.0-beta-20260110"
+version = "3.0.0-beta-20260122"
 tagline = "ShapeKey Tools"
 maintainer = "Mio"
 type = "add-on"
