@@ -17,11 +17,17 @@ class OBJECT_OT_mio3sk_select_group(Mio3SKGlobalOperator):
 
         group_items = [item for item in prop_o.ext_data if item.is_group]
 
+        new_index = -1
         for item in group_items:
             if item.name == self.group:
                 item.is_group_active = not item.is_group_active
+                if item.is_group_active:
+                    new_index = obj.data.shape_keys.key_blocks.find(item.name)
             else:
                 item.is_group_active = False
+
+        if new_index != -1:
+            obj.active_shape_key_index = new_index
 
         refresh_data(context, obj, filter=True)
         return {"FINISHED"}
