@@ -30,6 +30,7 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.separator()
         layout.operator("object.mio3sk_replace")
         layout.separator()
+
         layout.operator("object.mio3sk_modifier_apply", icon="MODIFIER")
         # layout.separator()
         # layout.menu("MIO3SK_MT_composer_menu", icon="LINKED")
@@ -155,6 +156,8 @@ class MIO3SK_MT_io_menu(Menu):
         layout.operator("object.mio3sk_output_shape_keys", icon="EXPORT")
         layout.operator("object.mio3sk_export_composer_rules", icon="EXPORT")
 
+        layout.separator()
+        layout.operator("object.mio3sk_bake_attr")
 
 class MIO3SK_MT_tag_settings(Menu):
     bl_label = "Tag Settings"
