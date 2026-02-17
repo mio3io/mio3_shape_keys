@@ -23,7 +23,7 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
         ],
         options={"SKIP_SAVE"},
     )
-    clear_value: BoolProperty(name="値をクリア", default=True, options={"SKIP_SAVE"})
+    # clear_value: BoolProperty(name="値をクリア", default=False, options={"SKIP_SAVE"})
     clear_shape: BoolProperty(name="形状を初期化", default=True, options={"SKIP_SAVE"})
 
     @classmethod
@@ -37,7 +37,7 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
     def draw(self, context):
         self.layout.label(text="Join To")
         self.layout.prop(self, "target", expand=True)
-        self.layout.prop(self, "clear_value")
+        # self.layout.prop(self, "clear_value")
         self.layout.prop(self, "clear_shape")
 
     def execute(self, context):
@@ -83,8 +83,8 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
                 if kb != active_kb:
                     if self.clear_value:
                         kb.value = 0.0
-                    if self.clear_shape:
-                        kb.data.foreach_set("co", bas_co_flat)
+                    # if self.clear_shape:
+                    #     kb.data.foreach_set("co", bas_co_flat)
 
             obj.shape_key_remove(new_kb)
             if basis_kb != active_kb:
