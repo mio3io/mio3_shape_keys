@@ -23,8 +23,8 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
         ],
         options={"SKIP_SAVE"},
     )
-    # clear_value: BoolProperty(name="値をクリア", default=False, options={"SKIP_SAVE"})
-    clear_shape: BoolProperty(name="形状を初期化", default=True, options={"SKIP_SAVE"})
+    clear_value: BoolProperty(name="値をクリア", default=False, options={"SKIP_SAVE"})
+    # clear_shape: BoolProperty(name="形状を初期化", default=True, options={"SKIP_SAVE"})
 
     @classmethod
     def poll(cls, context):
@@ -37,8 +37,8 @@ class OBJECT_OT_mio3sk_join_keys(Mio3SKOperator):
     def draw(self, context):
         self.layout.label(text="Join To")
         self.layout.prop(self, "target", expand=True)
-        # self.layout.prop(self, "clear_value")
-        self.layout.prop(self, "clear_shape")
+        self.layout.prop(self, "clear_value")
+        # self.layout.prop(self, "clear_shape")
 
     def execute(self, context):
         obj = context.active_object
