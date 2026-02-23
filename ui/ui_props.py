@@ -39,14 +39,17 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             icon = "TRIA_DOWN" if prop_s.show_props_composer else "TRIA_RIGHT"
             header_row = box_composer.row()
             sub = header_row.row()
-            sub.prop(prop_s, "show_props_composer", text="Composer Rules", emboss=False, icon=icon)
+            sub.prop(prop_s, "show_props_composer", text="Composer", emboss=False, icon=icon)
+            sub.prop(ext, "composer_type", text="Type")
+
             sub = header_row.row()
             sub.alignment = "RIGHT"
-            sub.label(text="", icon="LINKED")
+            # sub.label(text="", icon="LINKED")
+            sub.menu("MIO3SK_MT_composer_menu", text="", icon="DOWNARROW_HLT")
 
             if prop_s.show_props_composer:
                 box_composer.use_property_split = True
-                box_composer.prop(ext, "composer_type", text="Type")
+                # box_composer.prop(ext, "composer_type", text="Type")
                 if ext.composer_type == "+X" or ext.composer_type == "-X":
                     box_composer.prop(ext, "composer_smoothing_radius", text="Smoothing")
                 box_composer.use_property_split = False
@@ -55,8 +58,6 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
                     sub.scale_y = 1.1
                     sub.operator("object.mio3sk_composer_create", text="空のルールを作成").auto = False
                     sub.operator("object.mio3sk_composer_create", text="現在の値から作成").auto = True
-                    sub.separator()
-                    sub.menu("MIO3SK_MT_composer_menu", text="", icon="DOWNARROW_HLT")
                 else:
                     if ext.composer_type == "DEFORM":
                         self.layout_deform(box_composer, obj, ext)
@@ -64,13 +65,9 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
                         sub.operator("object.mio3sk_composer_apply", text="このキーを適用", icon="TRIA_RIGHT").dependence =True
                     else:
                         self.layout_copy(box_composer, obj, ext)
-                        sub = box_composer.row(align=True)
-                        sub.operator("object.mio3sk_composer_preview", icon="HIDE_OFF")
-                        sub.scale_x = 0.5
-                        sub.operator("object.mio3sk_composer_remove", text="Remove", icon="X")
+                        # sub = box_composer.row(align=True)
+                        # sub.operator("object.mio3sk_composer_remove", text="Remove", icon="X")
                     sub.scale_x = 1
-                    sub.separator()
-                    sub.menu("MIO3SK_MT_composer_menu", text="", icon="DOWNARROW_HLT")
 
                 child_exts = [e for e in prop_o.ext_data if ext.name in e.composer_source]
                 if child_exts:

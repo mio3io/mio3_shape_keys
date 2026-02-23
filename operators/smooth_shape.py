@@ -20,7 +20,7 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
     blend: FloatProperty(name="Blend", default=1, min=0, max=1, options={"HIDDEN"})
     iterations: EnumProperty(
         name="Repeat",
-        default="3",
+        default="1",
         items=[("1", "1", ""), ("3", "3", ""), ("5", "5", ""), ("10", "10", ""), ("20", "20", "")],
     )
     anti_bump: FloatProperty(name="凸凹補正", default=0.5, min=0, max=1, step=5)
@@ -38,7 +38,6 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
             selected_verts.update(find_x_mirror_verts(bm, selected_verts))
 
         basis_kb = obj.data.shape_keys.reference_key
-        # シェイプキーがない、または reference_key が存在する場合はラプラシアンを実行
         if not obj.data.shape_keys or basis_kb == obj.active_shape_key:
             self.mode = "LAPLACIAN"
             self.smooth_laplacian(obj, bm)
@@ -72,7 +71,7 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
             max_offset = max(max_offset, offset)
         max_offset = max(max_offset, 0.000001)
 
-        anti_bump_factor = 1.0 - self.anti_bump  # 体感的な数値
+        anti_bump_factor = 1.0 - self.anti_bump
         movement_factors = {}
         for v_idx, offset in offsets.items():
             normalized_offset = offset / max_offset

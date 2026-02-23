@@ -79,7 +79,7 @@ class MIO3SK_MT_add(Menu):
 
 
 class MIO3SK_MT_move(Menu):
-    bl_label = "Add"
+    bl_label = "Move"
 
     def draw(self, context):
         layout = self.layout
@@ -143,19 +143,21 @@ class MIO3SK_MT_composer_menu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("object.mio3sk_composer_remove_all", icon="TRASH")
+        layout.operator("object.mio3sk_composer_remove", text="ルールを削除", icon="TRASH")
+        layout.operator("object.mio3sk_composer_remove_all", text="すべてのルールを削除", icon="TRASH")
 
 
 class MIO3SK_MT_io_menu(Menu):
-    bl_label = "Import/Export"
+    bl_label = "インポート/エクスポート"
 
     def draw(self, context):
         layout = self.layout
+        layout.operator("object.mio3sk_transfer_settings")
+        layout.separator()
         layout.operator("object.mio3sk_import_composer_rules", icon="IMPORT")
         layout.separator()
         layout.operator("object.mio3sk_output_shape_keys", icon="EXPORT")
         layout.operator("object.mio3sk_export_composer_rules", icon="EXPORT")
-
         layout.separator()
         layout.operator("object.mio3sk_bake_attr")
 
