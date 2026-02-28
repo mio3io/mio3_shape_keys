@@ -22,12 +22,14 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
     bl_options = {"REGISTER", "UNDO"}
 
     blend: FloatProperty(name="Blend", default=1, min=-2, max=2, step=10, update=update_props)
-    smooth: BoolProperty(name="Smooth", default=True)
+    smooth: BoolProperty(name="Smooth", default=False)
     add: BoolProperty(name="Add", default=False)
     falloff: EnumProperty(
         name="Falloff",
         items=[
             ("gaussian", "Gaussian", ""),
+            ("sphere", "Sphere", ""),
+            ("arc", "Arc", ""),
             ("linear", "Linear", ""),
         ],
     )
@@ -95,23 +97,25 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         if not selected_verts:
             self.report({"WARNING"}, "No vertices selected")
             return {"CANCELLED"}
-        selected_verts_indices = [v.index for v in selected_verts]
 
+        selected_verts_list = sorted(selected_verts, key=lambda v: v.index)
+        selected_verts_indices = [v.index for v in selected_verts_list]
         basis_co = np.array([basis_kb.data[i].co for i in selected_verts_indices])
         source_co = np.array([blend_source.data[i].co for i in selected_verts_indices])
-        target_co = np.array([v.co for v in selected_verts])
+        target_co = np.array([v.co for v in selected_verts_list])
 
-        weights = self.calc_weights_shape(selected_verts, target_co)
+        weights = self.calc_weights_shape(selected_verts_list, target_co)
         weights /= np.max(weights)
         weights = weights * self.blend
+
         if self.add:
             diff = source_co - basis_co
-            move_offset = diff * weights[:, np.newaxis]
-            result = target_co + move_offset
+            result = target_co + diff * weights[:, np.newaxis]
         else:
-            result = (1 - weights[:, np.newaxis]) * target_co + weights[:, np.newaxis] * source_co
+            weight_col = weights[:, np.newaxis]
+            result = (1 - weight_col) * target_co + weight_col * source_co
 
-        for v, new_co in zip(selected_verts, result):
+        for v, new_co in zip(selected_verts_list, result):
             v.co = new_co
 
         bm.normal_update()
@@ -142,20 +146,16 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         num_verts = len(selected_verts)
         distances = np.zeros(num_verts)
 
-        if boundary_verts:
-            if interior_indices:
-                boundary_co = np.array([v.co for v in boundary_verts])
-                if len(interior_indices) > 0:
-                    interior_target_co = target_co[interior_indices]
-                    all_distances = np.linalg.norm(interior_target_co[:, np.newaxis] - boundary_co, axis=2)
-                    min_distances = np.min(all_distances, axis=1)
-                    distances[interior_indices] = min_distances
-
-                distances[boundary_indices] = 0.001
-            else:
-                distances[:] = 1  # 境界頂点しかない場合
-        else:
+        if not boundary_verts:
             distances[:] = 1  # 境界がない場合
+        elif not interior_indices:
+            distances[:] = 1  # 境界頂点しかない場合
+        else:
+            boundary_co = np.array([v.co for v in boundary_verts])
+            interior_target_co = target_co[interior_indices]
+            all_distances = np.linalg.norm(interior_target_co[:, np.newaxis] - boundary_co, axis=2)
+            distances[interior_indices] = np.min(all_distances, axis=1)
+            distances[boundary_indices] = 0.001
 
         max_distance = np.max(distances)
         if max_distance < 1e-6:
@@ -164,11 +164,16 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         if self.falloff == "gaussian":
             sigma = max(max_distance / 3, 1e-4)
             weights = 1 - self.gaussian(distances, 0, sigma)
+        elif self.falloff == "sphere":
+            t = distances / (max_distance + 1e-6)
+            weights = np.sin(t * (np.pi / 2))
+        elif self.falloff == "arc":
+            t = distances / (max_distance + 1e-6)
+            weights = np.sin(t * (np.pi / 2))**0.75
         else:
             weights = distances / (max_distance + 1e-6)
 
-        weights = np.clip(weights, 0, 1)
-        return weights
+        return np.clip(weights, 0, 1)
 
     @staticmethod
     def gaussian(x, mu, sigma):
@@ -195,10 +200,14 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         row.prop(self, "add")
 
         box = layout.box()
-        box.prop(self, "smooth")
-        if self.smooth:
-            col = box.column()
-            col.prop(self, "falloff")
+        
+        row = box.split(factor=0.35)
+        row.prop(self, "smooth")
+
+        col = row.row()
+        if not self.smooth:
+            col.enabled = False
+        col.prop(self, "falloff", text="")
 
 
 class WM_OT_blend_set_key(Mio3SKOperator):
