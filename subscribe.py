@@ -165,7 +165,7 @@ def callback_name():
 
 
 def init_addon():
-    debug_function("Mio3 ShapeKeys: Init Addon")
+    # debug_function("Mio3 ShapeKeys: Init Addon")
     context = bpy.context
     for obj in bpy.data.objects:
         try:

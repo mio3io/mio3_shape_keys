@@ -19,17 +19,18 @@ class MIO3SK_PT_side_main(Mio3SKSidePanel):
         row = col.row(align=True)
         row.operator("mesh.mio3sk_reset", text="Reset", icon_value=icons.eraser)
         row.operator("mesh.mio3sk_smooth_shape", text="Smooth", icon_value=icons.smooth)
+        row.menu("MIO3SK_MT_side", text="", icon="DOWNARROW_HLT")
         col.separator()
 
+        # row = col.row(align=True)
+        # row.operator("mesh.mio3sk_invert", text="Invert", icon_value=icons.delta_invert)
+        # row.operator("mesh.mio3sk_mirror", text="Mirror", icon_value=icons.mirror)
         row = col.row(align=True)
-        row.operator("mesh.mio3sk_invert", text="Invert", icon_value=icons.delta_invert)
-        row.operator("mesh.mio3sk_mirror", text="Mirror", icon_value=icons.mirror)
-        row = col.row(align=True)
-        row.operator("mesh.mio3sk_select_asymmetry", text="非対称の頂点", icon="RESTRICT_SELECT_OFF")
+        row.operator("mesh.mio3sk_clean", text="Clean", icon="MOD_FLUIDSIM")
         row.operator("mesh.mio3sk_symmetrize", text="Symmetrize", icon_value=icons.symmetrize)
         row = col.row(align=True)
-        row.operator("mesh.mio3sk_select_moved", text="使用頂点", icon="RESTRICT_SELECT_OFF")
-        row.operator("mesh.mio3sk_clean", text="Clean", icon="MOD_FLUIDSIM")
+        row.operator("mesh.mio3sk_select_moved", text="Deformed", icon="RESTRICT_SELECT_OFF")
+        row.operator("mesh.mio3sk_select_asymmetry", text="Asymmetry", icon="RESTRICT_SELECT_OFF")
         col.separator()
         row = col.row(align=True)
         row.operator("mesh.mio3sk_copy", text="Copy", icon="COPYDOWN")
@@ -80,8 +81,9 @@ class MIO3SK_PT_sub_delta_repair(Mio3SKSidePanel):
         col.label(text="Basisに適用を使用後に", icon="INFO")
         col.label(text="崩れた表情を修復します", icon="BLANK1")
         row = col.row(align=True)
-        row.prop(prop_w, "apply_to_basis", text="")
-        row.enabled = False
+        shape_keys = context.active_object.data.shape_keys
+        row.prop_search(prop_w, "apply_to_basis", shape_keys, "key_blocks", text="")
+        # row.enabled = False
         col.operator("mesh.mio3sk_repair")
 
 

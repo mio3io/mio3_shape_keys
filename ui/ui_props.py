@@ -1,10 +1,11 @@
 import bpy
 from ..classes.operator import Mio3SKPanel
 from ..utils.utils import has_shape_key
+from ..globals import get_preferences
 
 
 class MIO3SK_PT_sub_properties(Mio3SKPanel):
-    bl_label = "Properties"
+    bl_label = ""
     bl_parent_id = "MIO3SK_PT_main"
     bl_options = {"DEFAULT_CLOSED"}
 
@@ -12,11 +13,17 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
     def poll(cls, context):
         obj = context.object
         return obj is not None and has_shape_key(obj)
+    
+    def draw_header(self, context):
+        active_shape_key_index = context.object.active_shape_key_index
+        active_shape_key = context.object.active_shape_key
+        row = self.layout.row()
+        row.label(text="プロパティ [{}] {}".format(active_shape_key_index, active_shape_key.name))
 
     def draw(self, context):
 
         layout = self.layout
-
+        # pref = get_preferences()
         obj = context.object
         prop_o = obj.mio3sk
         prop_s = context.scene.mio3sk
@@ -39,8 +46,8 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             icon = "TRIA_DOWN" if prop_s.show_props_composer else "TRIA_RIGHT"
             header_row = box_composer.row()
             sub = header_row.row()
-            sub.prop(prop_s, "show_props_composer", text="Composer", emboss=False, icon=icon)
-            sub.prop(ext, "composer_type", text="Type")
+            sub.prop(prop_s, "show_props_composer", text="Shape Sync", emboss=False, icon=icon)
+            sub.prop(ext, "composer_type", text="")
 
             sub = header_row.row()
             sub.alignment = "RIGHT"
@@ -87,26 +94,34 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
         if key.use_relative:
             col = layout.column()
             row = col.row(align=True, heading="Active Shape Key")
-            row.label(text="{} ({})".format(kb.name, active_shape_key_index), icon="SHAPEKEY_DATA")
-            # col.prop(prop_o, "syncs")
-            col.prop(kb, "value", text="Value")
+            # row.label(text="{} ({})".format(kb.name, active_shape_key_index), icon="SHAPEKEY_DATA")
+            # col.prop(kb, "value", text="Value")
             sub = col.column(align=True)
             sub.prop(kb, "slider_min", text="Range Min")
             sub.prop(kb, "slider_max", text="Max")
             sub = col.row(align=True)
             sub.prop_search(kb, "vertex_group", obj, "vertex_groups", text="Vertex Group")
             sub.menu("MIO3SK_MT_prop_vertex_group", text="", icon="DOWNARROW_HLT")
-            col.prop_search(kb, "relative_key", key, "key_blocks", text="Relative To")
+            sub = col.row(align=True)
+            sub.prop_search(kb, "relative_key", key, "key_blocks", text="Relative To")
         else:
             layout.prop(kb, "interpolation")
             row = layout.column()
             row.prop(key, "eval_time")
         
-        col.prop(ext, "protect_delta")
-        col.prop(ext, "is_group", text="Group")
+        sub = col.column(align=True)
+        sub.prop(ext, "protect_delta")
+        if prop_s.use_group_prefix == "NONE":
+            sub.prop(ext, "is_group", text="Group")
         if ext.is_group:
-            col.prop(ext, "group_color", text="グループカラー")
-            col.prop(ext, "is_group_hidden", text="グループ一覧で非表示")
+            sub.prop(ext, "group_color", text="グループカラー")
+            sub.prop(ext, "is_group_hidden", text="グループ一覧で非表示")
+        
+        # if pref.advanced:
+        #     col.prop(ext, "name_ja")
+        #     col.prop(ext, "old_name")
+        #     col.prop(ext, "old_ratio")
+
 
     def layout_deform(self, box, obj, ext):
         col = box.column()

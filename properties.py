@@ -229,6 +229,18 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
         default=False,
         options=set(),
     )
+    name_ja: StringProperty(name="カスタムラベル（Dev)", options=set())
+    old_name: StringProperty(name="古い名前（Dev)", options=set())
+    old_ratio: FloatProperty(
+        name="倍率変更（Dev)",
+        description="例）前回のバージョンから3になった場合は3と入力",
+        default=1,
+        min=-10,
+        max=10,
+        step=10,
+        options=set(),
+    )
+    # old_cancel: StringProperty(name="キャンセルキー（Dev)", description="カンマ区切り", options=set())
 
 
 # フループ名
@@ -251,10 +263,7 @@ class OBJECT_PG_mio3sk(PropertyGroup):
             ext["is_group_close"] = self.is_group_global_close
         refresh_filter_flag(context, context.object)
 
-    def callback_filter_select(self, context):
-        refresh_filter_flag(context, context.object)
-
-    def callback_filter_name(self, context):
+    def callback_filter(self, context):
         refresh_filter_flag(context, context.object)
 
     def callback_syncs(self, context):
@@ -304,15 +313,11 @@ class OBJECT_PG_mio3sk(PropertyGroup):
     )
     filter_name: StringProperty(
         name="Filter by Name",
-        update=callback_filter_name,
+        update=callback_filter,
         options={"TEXTEDIT_UPDATE"},
     )
-    filter_select: BoolProperty(
-        name="選択中のキーのみを表示",
-        default=False,
-        update=callback_filter_select,
-        options=set(),
-    )
+    filter_select: BoolProperty(name="選択中のキーのみを表示", default=False, update=callback_filter, options=set())
+    filter_used: BoolProperty(name="使用されているキーのみを表示", default=False, update=callback_filter, options=set())
     group_active: BoolProperty(name="Active Group", default=False, options=set())
 
     preset_list: CollectionProperty(
@@ -361,7 +366,7 @@ class SCENE_PG_mio3sk(PropertyGroup):
     hide_group_value: BoolProperty(name="グループのスライダーを非表示", default=True, options=set())
     panel_factor: FloatProperty(name="Panel factor", default=0.63, options=set())
     groupbar_factor: FloatProperty(name="Group Sidebar Size", default=1.0, min=1, max=2.0, options=set())
-    
+
     blend: FloatProperty(name="Blend", default=1, soft_min=-1, soft_max=2, step=10, options=set())
 
     composer_auto: BoolProperty(name="シェイプの同期を自動で適用", default=False, options=set())

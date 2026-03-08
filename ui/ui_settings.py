@@ -19,38 +19,36 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
 
         prefs = get_preferences()
 
-        split = layout.split(factor=0.35)
+        col = layout.column()
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
         split.label(text="Collection Sync")
-        sub = split.column()
-        sub.prop(prefs, "use_sync_active_shapekey")
+        split.prop(prefs, "use_sync_active_shapekey")
 
-        split = layout.split(factor=0.35)
+        col = layout.column()
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
-        split.label(text="Rename")
-        sub = split.column()
-        sub.prop(prefs, "use_rename_mirror")
+        split.label(text="")
+        split.prop(prefs, "use_rename_mirror")
 
-        split = layout.split(factor=0.35)
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
-        split.label(text="Mirror")
-        sub = split.column()
-        sub.prop(prefs, "use_auto_x_mirror")
+        split.label(text="")
+        split.prop(prefs, "use_auto_x_mirror")
 
-        split = layout.split(factor=0.35)
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
         split.label(text="Auto Grouping")
-        col = split.column()
-        col.row(align=True).prop(prop_s, "use_group_prefix", expand=True)
-        sub = col.column()
+        col2 = split.column()
+        col2.row(align=True).prop(prop_s, "use_group_prefix", expand=True)
+        sub = col2.column()
         sub.enabled = prop_s.use_group_prefix == "CUSTOM"
         sub.prop(prop_s, "group_prefix", text="Prefix")
 
-        split = layout.split(factor=0.35)
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
-        split.label(text="Group Sidebar")
-        sub = split.column()
-        sub.prop(prop_s, "groupbar_factor", text="")
+        split.label(text="Sidebar")
+        split.prop(prop_s, "groupbar_factor", text="")
 
         layout.separator()
 

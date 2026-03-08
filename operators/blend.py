@@ -44,7 +44,7 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj is not None and valid_shape_key(obj) and obj.mode == "EDIT"
+        return obj is not None and valid_shape_key(obj)
     
     def invoke(self, context, event):
         obj = context.active_object
@@ -77,12 +77,41 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
         blend_source_name = self.from_history if self.from_history else self.blend_source
         if not (blend_source := obj.data.shape_keys.key_blocks.get(blend_source_name)):
             return {"CANCELLED"}
+        
+        if obj.mode == "OBJECT":
+            basis_kb = obj.data.shape_keys.reference_key
+            target_kb = obj.active_shape_key
+            num_verts = len(obj.data.vertices)
+
+            basis_buf = np.empty(num_verts * 3, dtype=np.float32)
+            source_buf = np.empty(num_verts * 3, dtype=np.float32)
+            target_buf = np.empty(num_verts * 3, dtype=np.float32)
+
+            basis_kb.data.foreach_get("co", basis_buf)
+            blend_source.data.foreach_get("co", source_buf)
+            target_kb.data.foreach_get("co", target_buf)
+
+            basis_co = basis_buf.reshape((num_verts, 3))
+            source_co = source_buf.reshape((num_verts, 3))
+            target_co = target_buf.reshape((num_verts, 3))
+
+            if self.add:
+                result = target_co + (source_co - basis_co) * self.blend
+            else:
+                result = (1 - self.blend) * target_co + self.blend * source_co
+
+            target_kb.data.foreach_set("co", result.reshape(num_verts * 3))
+            obj.data.update()
+            # self.print_time()
+            return {"FINISHED"}
 
         if not self.smooth:
             try:
                 bpy.ops.mesh.blend_from_shape(shape=blend_source_name, blend=self.blend, add=self.add)
             except:
                 pass
+
+            self.print_time()
             return {"FINISHED"}
 
         basis_kb = obj.data.shape_keys.reference_key
@@ -120,6 +149,7 @@ class MESH_OT_mio3sk_blend(Mio3SKOperator):
 
         bm.normal_update()
         bmesh.update_edit_mesh(obj.data)
+
         self.print_time()
         return {"FINISHED"}
 

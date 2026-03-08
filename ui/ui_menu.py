@@ -35,8 +35,9 @@ class MIO3SK_MT_main(bpy.types.Menu):
         # layout.separator()
         # layout.menu("MIO3SK_MT_composer_menu", icon="LINKED")
         layout.separator()
-        layout.menu("MIO3SK_MT_add_preset", text="Preset", icon="ADD")
-        layout.menu("MIO3SK_MT_io_menu", icon="IMPORT")
+        layout.menu("MIO3SK_MT_add_preset", icon="ADD")
+        layout.menu("MIO3SK_MT_io_import_menu", icon="IMPORT")
+        layout.menu("MIO3SK_MT_io_export_menu", icon="EXPORT")
         layout.separator()
         layout.operator("object.mio3sk_shape_key_remove", text="Delete All", icon="X").mode = "ALL"
 
@@ -96,7 +97,7 @@ class MIO3SK_MT_move(Menu):
 
 
 class MIO3SK_MT_add_preset(Menu):
-    bl_label = "Add"
+    bl_label = "Preset"
 
     def draw(self, context):
         layout = self.layout
@@ -147,19 +148,25 @@ class MIO3SK_MT_composer_menu(Menu):
         layout.operator("object.mio3sk_composer_remove_all", text="すべてのルールを削除", icon="TRASH")
 
 
-class MIO3SK_MT_io_menu(Menu):
-    bl_label = "インポート/エクスポート"
+class MIO3SK_MT_io_import_menu(Menu):
+    bl_label = "Import"
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("object.mio3sk_transfer_settings")
+        layout.operator("object.mio3sk_transfer_settings", icon="IMPORT")
         layout.separator()
         layout.operator("object.mio3sk_import_composer_rules", icon="IMPORT")
-        layout.separator()
+
+
+class MIO3SK_MT_io_export_menu(Menu):
+    bl_label = "Export"
+
+    def draw(self, context):
+        layout = self.layout
         layout.operator("object.mio3sk_output_shape_keys", icon="EXPORT")
         layout.operator("object.mio3sk_export_composer_rules", icon="EXPORT")
-        layout.separator()
-        layout.operator("object.mio3sk_bake_attr")
+        layout.operator("object.mio3sk_bake_attr", icon="EXPORT")
+
 
 class MIO3SK_MT_tag_settings(Menu):
     bl_label = "Tag Settings"
@@ -225,6 +232,16 @@ class MIO3SK_PT_options_popover(Panel):
             layout.prop(obj.data.shape_keys, "use_relative")
 
 
+class MIO3SK_MT_side(Menu):
+    bl_label = "Side Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.operator("mesh.mio3sk_mirror", text="Mirror", icon_value=icons.mirror)
+        col.operator("mesh.mio3sk_invert", text="デルタ反転", icon_value=icons.delta_invert)
+
+
 # 右クリックのコンテキストメニュー
 def button_context_menu(self, context):
     if menu := getattr(context, "button_operator", None):
@@ -259,7 +276,9 @@ classes = [
     MIO3SK_MT_tag_settings,
     MIO3SK_MT_prop_vertex_group,
     MIO3SK_MT_composer_menu,
-    MIO3SK_MT_io_menu,
+    MIO3SK_MT_io_import_menu,
+    MIO3SK_MT_io_export_menu,
+    MIO3SK_MT_side,
 ]
 
 

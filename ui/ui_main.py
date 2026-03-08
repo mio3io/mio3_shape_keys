@@ -236,11 +236,14 @@ class MIO3SK_PT_main(Mio3SKPanel):
     @staticmethod
     def layout_select_keys(list_foot, prop_o, selected_len):
         sub = list_foot.row(align=True)
+        sub.scale_x = 1.2
         sub.prop(prop_o, "filter_select", icon="CHECKMARK", text="")
+        sub.prop(prop_o, "filter_used", icon="CON_ACTION", text="")
+        sub.separator(factor=0.5)
         sub.menu("MIO3SK_MT_select_keys_edit")
-        sub.operator("object.mio3sk_select_all", icon="CHECKBOX_HLT", text="")
+        sub.scale_x = 1
         sub.operator("object.mio3sk_deselect_all", icon="CHECKBOX_DEHLT", text="")
-        sub.separator()
+        sub.separator(factor=0.5)
         sub.label(text="{} {}".format(selected_len, pgettext("Selected")))
 
     @staticmethod

@@ -218,6 +218,7 @@ def refresh_filter_flag(context: Context, obj: Object):
     basis_name = shape_keys.reference_key.name
 
     filter_select = prop_o.filter_select
+    filter_used = prop_o.filter_used
     name_filter = prop_o.filter_name
     name_filter = name_filter.lower() if name_filter else None
 
@@ -270,6 +271,12 @@ def refresh_filter_flag(context: Context, obj: Object):
         if filter_select and not ext.select:
             ext.filter_flag = True
             continue
+
+        if filter_used:
+            kb = key_blocks.get(name)
+            if kb.value == 0.0:
+                ext.filter_flag = True
+                continue
 
         # 名前フィルター
         if name_filter and (name_filter not in name.lower()):
@@ -380,6 +387,7 @@ def clear_filter(context: Context, obj: Object, clear_filter_select=False):
 
     prop_o["filter_name"] = ""  # 文字検索
     prop_o["is_group_global_close"] = False  # グループ全体開閉
+    prop_o["filter_used"] = False
     prop_w.tag_filter_type = "OR"  # タグフィルタータイプ
     prop_w.tag_filter_invert = False  # タグフィルター反転
 

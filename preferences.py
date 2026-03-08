@@ -25,6 +25,7 @@ def update_panel(self, context):
 class MIO3SK_Preferences(AddonPreferences):
     bl_idname = __package__
 
+    advanced: BoolProperty(name="Advanced Mode", default=True, options=set())
     category: StringProperty(name="Tab", default="Mio3", update=update_panel, options=set())
 
     use_sync_active_shapekey: BoolProperty(name="Active Shape Key", default=True, options=set())
@@ -46,23 +47,28 @@ class MIO3SK_Preferences(AddonPreferences):
         split.label(text="Tab")
         split.prop(prefs, "category", text="")
 
-        split = layout.split(factor=0.35)
+        col = layout.column()
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
         split.label(text="Collection Sync")
-        sub = split.column()
+        sub = split.column(align=True)
         sub.prop(prefs, "use_sync_active_shapekey")
 
-        split = layout.split(factor=0.35)
+        col = layout.column()
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
-        split.label(text="Rename")
-        sub = split.column()
-        sub.prop(prefs, "use_rename_mirror")
+        split.label(text="")
+        split.prop(prefs, "use_rename_mirror")
 
-        split = layout.split(factor=0.35)
+        split = col.split(factor=0.35)
         split.alignment = "RIGHT"
-        split.label(text="Mirror")
-        sub = split.column()
-        sub.prop(prefs, "use_auto_x_mirror")
+        split.label(text="")
+        split.prop(prefs, "use_auto_x_mirror")
+
+        split = col.split(factor=0.35)
+        split.alignment = "RIGHT"
+        split.label(text="")
+        split.prop(prefs, "advanced")
 
 
 def register():

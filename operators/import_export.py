@@ -97,10 +97,7 @@ class OBJECT_OT_mio3sk_export_composer_rules(Mio3SKOperator, ExportHelper):
     selected: BoolProperty(name="選択中のキーのみ", default=False)
 
     filename_ext = ".json"
-    filter_glob: StringProperty(
-        default="*.json",
-        options={"HIDDEN"},
-    )
+    filter_glob: StringProperty(default="*.json", options={"HIDDEN"})
 
     @classmethod
     def poll(cls, context):
@@ -312,10 +309,15 @@ class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
 
     format: EnumProperty(
         name="Format",
-        items=[("TEXT", "Text", ""), ("JSON", "Json", ""), ("CSV", "CSV", "")],
+        items=[
+            ("TEXT", "Text", ""),
+            ("CSV", "CSV", ""),
+            ("JSON", "Json (キーの名前一覧)", ""),
+            ("JSON_PAIR", "Json (ペア用雛形)", ""),
+            ("JSON_RENAME", "Json (旧・新リスト)", ""),
+        ],
         default="JSON",
     )
-    pair_template: BoolProperty(name="ツール用テンプレート", default=False)
 
     @classmethod
     def poll(cls, context):
@@ -341,14 +343,12 @@ class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
             row.prop(self, "separator", expand=True)
             row.enabled = self.print_no
             layout.prop(self, "escape")
-        elif self.format == "JSON":
-            layout.prop(self, "pair_template")
 
     def execute(self, context):
         obj = context.active_object
         if obj is None or not has_shape_key(obj):
             return
-        
+
         if len(obj.data.shape_keys.key_blocks) <= 1:
             return {"CANCELLED"}
 
@@ -358,35 +358,36 @@ class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
         maxlen = max(len(kb.name) for kb in key_blocks[1:]) + 5
         for i, kb in enumerate(key_blocks[1:], start=1):
             ext = obj.mio3sk.ext_data.get(kb.name)
-            name = kb.name
-            if ext and self.source == "GROUP" and not ext.is_group:
+            if not ext or self.source == "GROUP" and not ext.is_group:
                 continue
 
             if self.format == "JSON":
-                if self.pair_template:
-                    name = '"{}",'.format(name.replace('"', '\\"'))
-                    name = pad_text(name, maxlen)
-                    lines.append('    [{} ""]'.format(name))
-                else:
-                    lines.append('  "{}"'.format(name.replace('"', '\\"')))
+                lines.append('  "{}"'.format(kb.name.replace('"', '\\"')))
+            elif self.format == "JSON_PAIR":
+                name = '"{}"'.format(kb.name.replace('"', '\\"'))
+                name = pad_text(name, maxlen)
+                lines.append('  [{} ""]'.format(pad_text(name, maxlen)))
+            elif self.format == "JSON_RENAME":
+                item = {"name": kb.name}
+                if ext.old_name:
+                    item["old"] = ext.old_name
+                if ext.old_ratio != 1:
+                    item["ratio"] = ext.old_ratio
+                lines.append('  {}'.format(json.dumps(item, ensure_ascii=False)))
             elif self.format == "CSV":
                 if self.print_no:
-                    lines.append("{}{sep}{}{sep}".format(i, name, sep=separator))
+                    lines.append("{}{sep}{}{sep}".format(i, kb.name, sep=separator))
                 else:
-                    lines.append("{}".format(name))
+                    lines.append("{}".format(kb.name))
             else:
                 if self.print_no:
-                    lines.append("{}{sep}".format(i, name, sep=separator))
+                    lines.append("{}{sep}".format(i, kb.name, sep=separator))
                 else:
-                    lines.append(name)
-        
-        if self.format == "JSON":
-            data = ",\n".join(lines)
-            if self.pair_template:
-                data = "{\n  \"CustomLabel\": [\n" + data + "\n  ]\n}"
-            else:
-                data = "[\n" + data + "\n]"
+                    lines.append(kb.name)
 
+        if self.format in {"JSON", "JSON_PAIR", "JSON_RENAME"}:
+            data = ",\n".join(lines)
+            data = "[\n" + data + "\n]"
         else:
             data = "\n".join(lines)
 

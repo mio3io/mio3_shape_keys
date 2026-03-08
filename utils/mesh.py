@@ -23,7 +23,7 @@ def find_x_mirror_verts(bm, selected_verts):
     return mirror_verts
 
 
-def find_x_mirror_vert_pairs(bm, selected_verts):
+def find_x_mirror_vert_pairs(bm, selected_verts) -> dict:
     """X軸に対称な頂点のペアを見つける"""
     kd = kdtree.KDTree(len(bm.verts))
     for i, v in enumerate(bm.verts):
@@ -32,13 +32,16 @@ def find_x_mirror_vert_pairs(bm, selected_verts):
 
     mirror_verts = {}
     for v in selected_verts:
+        result = None
         mirror_co = v.co.copy()
         mirror_co.x = -mirror_co.x
         _, index, dist = kd.find(mirror_co)
         if dist < 0.0001:
             mirror_vert = bm.verts[index]
             if mirror_vert not in selected_verts:
-                mirror_verts[v] = mirror_vert
+                result = mirror_vert
+
+        mirror_verts[v] = result
 
     return mirror_verts
 
