@@ -52,6 +52,8 @@ translation_dict = {
         ("Operator", "Active"): "アクティブ",
         ("*", "Auto Grouping"): "自動グループ化",
         ("*", "Group Sidebar"): "グループサイドバー",
+        ("*", "Group Action"): "グループアクション",
+
 
         # Select
         ("*", "Select Keys"): "選択キー",

@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import AddonPreferences
-from bpy.props import BoolProperty, FloatProperty, StringProperty
+from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from .ui import ui_side
 
 
@@ -36,6 +36,11 @@ class MIO3SK_Preferences(AddonPreferences):
         options=set(),
     )
     use_auto_x_mirror: BoolProperty(name="Xミラー編集の自動設定 (WIP)", default=True, options=set())
+    group_action: EnumProperty(
+        name="Group Action",
+        items=[("FILTER", "Filter", ""), ("JUMP", "Jump", "")],
+        options=set(),
+    )
     sidebar_factor: FloatProperty(name="Sidebar Size Factor", default=1.0, min=0.5, max=2.0, options=set())
 
     def draw(self, context):
@@ -64,6 +69,11 @@ class MIO3SK_Preferences(AddonPreferences):
         split.alignment = "RIGHT"
         split.label(text="")
         split.prop(prefs, "use_auto_x_mirror")
+
+        split = col.split(factor=0.35)
+        split.alignment = "RIGHT"
+        split.label(text="グループアクション")
+        split.prop(prefs, "group_action", text="")
 
         split = col.split(factor=0.35)
         split.alignment = "RIGHT"

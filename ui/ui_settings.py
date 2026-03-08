@@ -50,6 +50,12 @@ class MIO3SK_PT_sub_settings(Mio3SKPanel):
         split.label(text="Sidebar")
         split.prop(prop_s, "groupbar_factor", text="")
 
+        split = col.split(factor=0.35)
+        split.alignment = "RIGHT"
+        split.label(text="Group Action")
+        split.row(align=True).prop(prefs, "group_action", expand=True)
+
+
         layout.separator()
 
         layout.operator("object.mio3sk_transfer_settings")
