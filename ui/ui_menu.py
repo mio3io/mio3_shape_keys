@@ -240,6 +240,12 @@ class MIO3SK_MT_side(Menu):
         col = layout.column(align=True)
         col.operator("mesh.mio3sk_mirror", text="Mirror", icon_value=icons.mirror)
         col.operator("mesh.mio3sk_invert", text="デルタ反転", icon_value=icons.delta_invert)
+        col.separator()
+        col.operator("mesh.mio3sk_clean", text="Clean", icon="MOD_FLUIDSIM")
+        col.operator("mesh.mio3sk_symmetrize", text="Symmetrize", icon_value=icons.symmetrize)
+        col.separator()
+        col.operator("mesh.mio3sk_select_moved", text="移動している頂点を選択", icon="RESTRICT_SELECT_OFF")
+        col.operator("mesh.mio3sk_select_asymmetry", text="非対称頂点を選択", icon="RESTRICT_SELECT_OFF")
 
 
 # 右クリックのコンテキストメニュー

@@ -1,7 +1,16 @@
 import time
 from bpy.types import Operator, Panel
 from ..globals import DEBUG
-from ..utils.utils import is_local_obj, has_shape_key
+
+
+def is_local_obj(obj):
+    return obj is not None and obj.library is None and obj.override_library is None
+
+
+def has_shape_key(obj):
+    return (
+        obj.type in {"MESH", "CURVE", "LATTICE"} and obj.data.shape_keys is not None and 0 <= obj.active_shape_key_index
+    )
 
 
 class Mio3SKSidePanel(Panel):

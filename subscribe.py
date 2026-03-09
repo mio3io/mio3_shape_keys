@@ -2,11 +2,9 @@ import bpy
 from bpy.types import Object
 from bpy.app.handlers import persistent
 from .globals import get_preferences
-from .utils import debug_function
 from .utils.utils import is_obj, is_local_obj, is_local, has_shape_key, is_sync_collection
-from .utils.ext_data import check_update, refresh_data, refresh_filter_flag, rename_ext_data
+from .utils.ext_data import check_update, refresh_data, rename_ext_data
 from .utils.mirror import get_mirror_name
-import time
 
 
 def callback_mode():

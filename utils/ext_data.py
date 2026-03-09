@@ -1,4 +1,3 @@
-import time
 from bpy.types import Context, Object, ShapeKey
 from ..globals import LABEL_COLOR_DEFAULT
 from .utils import has_shape_key

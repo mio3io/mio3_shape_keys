@@ -1,5 +1,3 @@
-import bmesh
-import numpy as np
 from mathutils import kdtree
 
 

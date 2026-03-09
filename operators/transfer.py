@@ -1,5 +1,4 @@
 import bpy
-import math
 import numpy as np
 from bpy.types import Context, Object
 from bpy.props import BoolProperty, FloatProperty, EnumProperty

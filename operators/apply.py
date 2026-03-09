@@ -1,7 +1,6 @@
 import bpy
 import bmesh
 import numpy as np
-from bpy.types import ShapeKey
 from bpy.props import BoolProperty
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import valid_shape_key, is_local_obj

@@ -2,7 +2,6 @@ import bpy
 import bmesh
 import numpy as np
 from bpy.props import BoolProperty, FloatProperty, EnumProperty
-from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, valid_shape_key
 

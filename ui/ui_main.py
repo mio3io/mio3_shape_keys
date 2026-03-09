@@ -1,5 +1,4 @@
 import bpy
-import time
 from bpy.types import UIList, UI_UL_list
 from bpy.app.translations import pgettext
 from ..icons import icons

@@ -12,7 +12,7 @@ from bpy.props import (
 )
 from .icons import icons
 from .utils.utils import has_shape_key
-from .utils.ext_data import refresh_data, refresh_group_data, refresh_filter_flag, refresh_ui_select
+from .utils.ext_data import refresh_data, refresh_filter_flag, refresh_ui_select
 from .globals import TAG_COLOR_DEFAULT, LABEL_COLOR_DEFAULT
 from .subscribe import callback_show_only_shape_key
 

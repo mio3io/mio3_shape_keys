@@ -1,7 +1,6 @@
 import bpy
 from ..classes.operator import Mio3SKPanel
 from ..utils.utils import has_shape_key
-from ..globals import get_preferences
 
 
 class MIO3SK_PT_sub_properties(Mio3SKPanel):

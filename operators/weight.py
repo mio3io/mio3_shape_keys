@@ -1,7 +1,7 @@
 import bpy
 from ..classes.operator import Mio3SKOperator
 from bpy.props import StringProperty
-from ..utils.utils import is_local_obj, has_shape_key
+from ..utils.utils import has_shape_key
 
 
 class OBJECT_OT_mio3sk_shape_key_toggle(Mio3SKOperator):
