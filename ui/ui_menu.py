@@ -133,7 +133,7 @@ class MIO3SK_MT_select_keys_edit(Menu):
             layout.operator("object.mio3sk_keyframe", text="キーフレームを削除", icon="KEYFRAME").action = "REMOVE"
             layout.separator()
         layout.operator("object.mio3sk_reset", icon_value=icons.eraser)
-        layout.operator("object.mio3sk_clean_selected", icon="MOD_FLUIDSIM")
+        layout.operator("object.mio3sk_clean_selected", icon="MOD_FLUIDSIM").mode = "SELECTED"
         layout.operator("object.mio3sk_generate_mesh", icon="MONKEY")
         layout.separator()
         layout.operator("object.mio3sk_shape_key_remove", text="Delete Selected Shape Keys", icon="X").mode = "SELECTED"

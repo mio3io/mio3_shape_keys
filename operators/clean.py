@@ -1,7 +1,7 @@
 import bpy
 import bmesh
 import numpy as np
-from bpy.props import BoolProperty, FloatProperty
+from bpy.props import BoolProperty, FloatProperty, EnumProperty
 from bpy.app.translations import pgettext_iface as tt_iface
 from ..classes.operator import Mio3SKOperator
 from ..utils.utils import is_local_obj, valid_shape_key
@@ -81,6 +81,16 @@ class OBJECT_OT_mio3sk_clean_selected(Mio3SKOperator):
     bl_label = "選択したキーをクリーン"
     bl_description = "一定以上動いていない頂点をリセットする"
     bl_options = {"REGISTER", "UNDO"}
+
+    mode: EnumProperty(
+        name="Target",
+        items=[
+            ("ACTIVE", "Active Shape Key", ""),
+            ("SELECTED", "Selected Shape Keys", ""),
+            ("ALL", "All Shape Keys", ""),
+        ],
+        # options={"SKIP_SAVE"},
+    )
     threshold: FloatProperty(
         name="Threshold",
         default=0.0001,
@@ -100,17 +110,17 @@ class OBJECT_OT_mio3sk_clean_selected(Mio3SKOperator):
             return {"CANCELLED"}
         return context.window_manager.invoke_props_dialog(self)
 
-    def draw(self, context):
-        obj = context.active_object
-        layout = self.layout
-        selected_len = sum(ext.select for ext in obj.mio3sk.ext_data)
-        key_blocks_len = len(obj.data.shape_keys.key_blocks) - 1
-        if selected_len:
-            layout.label(
-                text=tt_iface("{} of {} shape keys selected").format(key_blocks_len, selected_len),
-                icon="SHAPEKEY_DATA",
-            )
-        layout.prop(self, "threshold")
+    # def draw(self, context):
+    #     obj = context.active_object
+    #     layout = self.layout
+    #     selected_len = sum(ext.select for ext in obj.mio3sk.ext_data)
+    #     key_blocks_len = len(obj.data.shape_keys.key_blocks) - 1
+    #     if selected_len:
+    #         layout.label(
+    #             text=tt_iface("{} of {} shape keys selected").format(key_blocks_len, selected_len),
+    #             icon="SHAPEKEY_DATA",
+    #         )
+    #     layout.prop(self, "threshold")
 
     def execute(self, context):
         self.start_time()
@@ -122,7 +132,12 @@ class OBJECT_OT_mio3sk_clean_selected(Mio3SKOperator):
         key_blocks = obj.data.shape_keys.key_blocks
         v_len = len(obj.data.vertices)
 
-        selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
+        if self.mode == "ACTIVE":
+            selected_names = {obj.active_shape_key.name}
+        elif self.mode == "SELECTED":
+            selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
+        else:
+            selected_names = {kb.name for kb in key_blocks[1:]}
 
         basis_co = np.empty(v_len * 3, dtype=np.float32)
         basis_kb.data.foreach_get("co", basis_co)
