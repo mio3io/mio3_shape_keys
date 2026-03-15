@@ -1,39 +1,39 @@
 # Mio3 Shape Keys
 
-キャラクターモデリングに特化したシェイプキー管理統合ツールです。
+An integrated shape key management tool specialized for character modeling.
 
-## ダウンロード
+## Download
 
 https://addon.mio3io.com/
 
-## ドキュメント
+## Documentation
 
 [Mio3 Shape Keys Ver3 Documentation (WIP)](https://addon.mio3io.com/#/ja/mio3shapekeys/)
 
 
-## Ver3 で追加された主な機能
+## Main Features Added in Ver3
 
--   シェイプキーの形状同期・自動編集
--   シェイプキーを維持したモディファイア適用
--   異なるトポロジーに対応したシェイプキーの一括転送
--   左右のシェイプキーを作成
--   逆側のシェイプキーを作成
--   タグ付け
--   シェイプキー値のプリセット登録
--   グループ化機能（標準では「===」から始まるの名前のキーでグループ化）
--   グループ単位の移動とソート
--   複数選択システム
--   選択したキーの一括処理
--   未使用やエラー要因など特定の条件のキーを探す機能
--   シェイプキーのスムージング
--   シェイプを対称化
--   シェイプを左右反転
--   シェイプの移動量を反転
--   シェイプをコピー＆ペースト
--   しきい値以上動いていない頂点をクリア
--   シェイプキーをオブジェクトとして実体化
--   Basis に適用で崩れるまばたきなどのシェイプキーの保護や修復機能
+-   Shape key sync and automatic editing
+-   Apply modifiers while preserving shape keys
+-   Batch transfer of shape keys between meshes with different topology
+-   Create left/right shape keys
+-   Create opposite-side shape keys
+-   Tagging
+-   Shape key value preset registration
+-   Grouping (default: keys with names starting with "===" are grouped)
+-   Move and sort by group
+-   Multi-select system
+-   Batch operations on selected keys
+-   Find keys matching specific conditions (unused, error causes, etc.)
+-   Shape key smoothing
+-   Symmetrize shape
+-   Mirror shape (left/right)
+-   Invert shape movement amount
+-   Copy and paste shape
+-   Clear vertices that have not moved beyond a threshold
+-   Materialize shape keys as objects
+-   Protect and repair shape keys (e.g., blink) that break when applied to Basis
 
 ## Ver2
 
-Ver2 は [releases](https://github.com/mio3io/mio3_shape_keys/releases) からダウンロードできます。
+Ver2 can be downloaded from [releases](https://github.com/mio3io/mio3_shape_keys/releases).
