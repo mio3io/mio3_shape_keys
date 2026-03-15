@@ -1,3 +1,8 @@
+<p align="center">
+  <a href="README.md">English</a> |
+  <a href="README-JP.md">日本語</a>
+</p>
+
 # Mio3 Shape Keys
 
 An integrated shape key management tool specialized for character modeling.
