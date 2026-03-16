@@ -216,6 +216,9 @@ translation_dict = {
 
         # reset.py
         ("Operator", "Reset selected key shapes"): "選択したキーの形状をリセット",
+        ("Operator", "Set Value To Zero"): "値をゼロに設定",
+        ("*", "Sets the selected shape keys value to zero"): "選択したシェイプキーの値をゼロに設定します",
+        ("*", "Set {} shape keys to zero"): "{}個のシェイプキーをゼロに設定しました",
 
         # select_keys.py
         ("Operator", "Select unused keys"): "未使用のキーを選択",
