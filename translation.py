@@ -207,6 +207,16 @@ translation_dict = {
 
         # preset.py
         ("Operator", "Preset (+Ctrl to overwrite value)"): "Preset (+Ctrlキーで値を上書き)",
+        ("Operator", "Export Presets"): "プリセットをエクスポート",
+        ("*", "Export presets to JSON file"): "プリセットをJSONファイルにエクスポート",
+        ("Operator", "Import Presets"): "プリセットをインポート",
+        ("*", "Import presets from JSON file"): "JSONファイルからプリセットをインポート",
+        ("*", "Export"): "エクスポート",
+        ("*", "No presets to export"): "エクスポートするプリセットがありません",
+        ("*", "Exported {} preset(s)"): "{}件のプリセットをエクスポートしました",
+        ("*", "Imported {} preset(s)"): "{}件のプリセットをインポートしました",
+        ("*", "Selected Keys Only"): "選択したキーのみ",
+        ("*", "Include Zero Value"): "ゼロ値のキーを含める",
 
         # repair.py
         ("Operator", "Repair shape keys"): "シェイプキーを修復",

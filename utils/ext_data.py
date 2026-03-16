@@ -273,7 +273,7 @@ def refresh_filter_flag(context: Context, obj: Object):
 
         if filter_used:
             kb = key_blocks.get(name)
-            if kb.value == 0.0:
+            if kb.value == 0.0 and not ext.is_group:
                 ext.filter_flag = True
                 continue
 

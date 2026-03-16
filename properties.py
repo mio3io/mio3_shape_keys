@@ -24,7 +24,8 @@ class OBJECT_PG_mio3sk_key(PropertyGroup):
 
 # プリセット登録キー
 class OBJECT_PG_mio3sk_ext_data_preset_key(PropertyGroup):
-    value: FloatProperty(name="Value", default=1, min=0, max=1, options=set())
+    name: StringProperty(name="Name", default="", options=set())
+    value: FloatProperty(name="Value", default=1, options=set())
 
 
 # プリセットアイテム
@@ -45,6 +46,11 @@ class OBJECT_PG_mio3sk_ext_data_setting_preset(PropertyGroup):
     hide: BoolProperty(
         name="Hide",
         default=False,
+        options=set(),
+    )
+    export: BoolProperty(
+        name="Export",
+        default=True,
         options=set(),
     )
     shape_keys: CollectionProperty(
@@ -116,7 +122,7 @@ class OBJECT_PG_mio3sk_ext_data_tag(PropertyGroup):
 
 # コンポーザーのソース
 class OBJECT_PG_mio3sk_ext_data_source_key(PropertyGroup):
-    value: FloatProperty(name="Value", default=1, min=-1, max=1, options=set())
+    value: FloatProperty(name="Value", default=1, options=set())
     mask: StringProperty(name="Mask", description="Optional", options=set())
 
 
@@ -142,7 +148,10 @@ class OBJECT_PG_mio3sk_ext_data(PropertyGroup):
             refresh_ui_select(context.object)
 
     def callback_is_group_close(self, context):
-        refresh_filter_flag(context, context.object)
+        obj = context.object
+        if obj and obj.data.shape_keys and self.name in obj.data.shape_keys.key_blocks:
+            obj.active_shape_key_index = obj.data.shape_keys.key_blocks.find(self.name)
+        refresh_filter_flag(context, obj)
 
     def callback_is_group(self, context):
         # refresh_filter_flag(context, context.object)

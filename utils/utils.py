@@ -44,6 +44,22 @@ def get_unique_name(existing_names, base_name="Group", sep=" "):
         counter += 1
 
 
+def get_unique_name_windows(existing_names, base_name="Preset"):
+    """Windows-style: name (1), name (2), ..."""
+    import re
+    match = re.match(r"^(.+?)\s*\((\d+)\)\s*$", base_name)
+    if match:
+        base_name = match.group(1).strip()
+    if base_name not in existing_names:
+        return base_name
+    counter = 1
+    while True:
+        new_name = "{} ({})".format(base_name, counter)
+        if new_name not in existing_names:
+            return new_name
+        counter += 1
+
+
 def move_shape_key_below(obj, anchor_idx, target_idx):
     """ target_idx のシェイプキーを anchor_idx の直下に移動する """
     key_blocks = obj.data.shape_keys.key_blocks

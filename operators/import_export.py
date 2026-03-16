@@ -5,7 +5,7 @@ from bpy_extras.io_utils import ExportHelper
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from bpy.app.translations import pgettext_rpt
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
-from ..utils.utils import has_shape_key, valid_shape_key, pad_text
+from ..utils.utils import has_shape_key, valid_shape_key, pad_text, get_unique_name_windows
 from ..utils.ext_data import refresh_data
 
 
@@ -163,6 +163,114 @@ class OBJECT_OT_mio3sk_export_composer_rules(Mio3SKOperator, ExportHelper):
         return {"FINISHED"}
 
 
+class OBJECT_OT_mio3sk_export_presets(Mio3SKGlobalOperator):
+    bl_idname = "object.mio3sk_export_presets"
+    bl_label = "Export Presets"
+    bl_description = "Export presets to JSON file"
+    bl_options = {"REGISTER", "UNDO"}
+
+    filepath: StringProperty(name="File Path", subtype="FILE_PATH")
+    filter_glob: StringProperty(default="*.json", options={"HIDDEN"})
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None and obj.mode == "OBJECT"
+
+    def invoke(self, context, event):
+        obj = context.active_object
+        if not obj:
+            return {"CANCELLED"}
+        default_path = os.path.dirname(bpy.data.filepath) if bpy.data.filepath else ""
+        self.filepath = os.path.join(default_path, "presets.json")
+        context.window_manager.fileselect_add(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+        obj = context.active_object
+        if not obj:
+            return {"CANCELLED"}
+        prop_o = obj.mio3sk
+        preset_list = prop_o.preset_list
+        presets_to_export = [p for p in preset_list if p.export]
+        if not presets_to_export:
+            self.report({"WARNING"}, pgettext_rpt("No presets to export"))
+            return {"CANCELLED"}
+
+        export_data = {
+            "version": 1,
+            "presets": [
+                {
+                    "name": p.name,
+                    "shape_keys": [{"name": sk.name, "value": sk.value} for sk in p.shape_keys],
+                }
+                for p in presets_to_export
+            ],
+        }
+        try:
+            with open(self.filepath, "w", encoding="utf-8") as f:
+                json.dump(export_data, f, ensure_ascii=False, indent=2)
+        except IOError:
+            self.report({"ERROR"}, pgettext_rpt("Export failed"))
+            return {"CANCELLED"}
+        self.report({"INFO"}, pgettext_rpt("Exported {} preset(s)").format(len(presets_to_export)))
+        return {"FINISHED"}
+
+
+class OBJECT_OT_mio3sk_import_presets(Mio3SKGlobalOperator):
+    bl_idname = "object.mio3sk_import_presets"
+    bl_label = "Import Presets"
+    bl_description = "Import presets from JSON file"
+    bl_options = {"REGISTER", "UNDO"}
+
+    filepath: StringProperty(name="File Path", subtype="FILE_PATH")
+    filter_glob: StringProperty(default="*.json", options={"HIDDEN"})
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.active_object
+        return obj is not None and obj.mode == "OBJECT"
+
+    def invoke(self, context, event):
+        obj = context.active_object
+        if not obj:
+            return {"CANCELLED"}
+        context.window_manager.fileselect_add(self)
+        return {"RUNNING_MODAL"}
+
+    def execute(self, context):
+        obj = context.active_object
+        if not obj:
+            return {"CANCELLED"}
+        if not os.path.exists(self.filepath):
+            self.report({"ERROR"}, pgettext_rpt("File does not exist"))
+            return {"CANCELLED"}
+        try:
+            with open(self.filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except (IOError, json.JSONDecodeError):
+            self.report({"ERROR"}, pgettext_rpt("Failed to read file"))
+            return {"CANCELLED"}
+
+        prop_o = obj.mio3sk
+        preset_list = prop_o.preset_list
+        existing_names = {p.name for p in preset_list}
+        count = 0
+        for p_data in data.get("presets", []):
+            name = p_data.get("name", "Preset")
+            name = get_unique_name_windows(existing_names, name)
+            existing_names.add(name)
+            new_preset = preset_list.add()
+            new_preset.name = name
+            for sk_data in p_data.get("shape_keys", []):
+                sk = new_preset.shape_keys.add()
+                sk.name = sk_data.get("name", "")
+                sk.value = float(sk_data.get("value", 1.0))
+            count += 1
+        self.report({"INFO"}, pgettext_rpt("Imported {} preset(s)").format(count))
+        return {"FINISHED"}
+
+
 def poll_source_object(self, obj):
     return has_shape_key(obj) and bpy.context.active_object != obj
 
@@ -236,6 +344,8 @@ class OBJECT_OT_mio3sk_transfer_settings(Mio3SKGlobalOperator):
             for base_item in base_prop_o.preset_list:
                 new_item = prop_o.preset_list.add()
                 new_item.name = base_item.name
+                new_item.hide = base_item.hide
+                new_item.export = base_item.export
                 for p_key in base_item.shape_keys:
                     if p_key.name in key_blocks:
                         new_key = new_item.shape_keys.add()
@@ -410,6 +520,8 @@ class OBJECT_OT_mio3sk_output_shape_keys(Mio3SKOperator):
 classes = [
     OBJECT_OT_mio3sk_import_composer_rules,
     OBJECT_OT_mio3sk_export_composer_rules,
+    OBJECT_OT_mio3sk_export_presets,
+    OBJECT_OT_mio3sk_import_presets,
     OBJECT_OT_mio3sk_transfer_settings,
     OBJECT_OT_mio3sk_output_shape_keys,
 ]

@@ -2,6 +2,24 @@ import bpy
 from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import get_unique_name, has_shape_key
+from ..utils.ext_data import refresh_data
+
+
+def _get_shape_keys_to_save(obj, use_selected_only, include_zero_value):
+    key_blocks = obj.data.shape_keys.key_blocks
+    basis_name = obj.data.shape_keys.reference_key.name
+    selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select} if use_selected_only else None
+
+    result = []
+    for kb in key_blocks:
+        if kb.name == basis_name:
+            continue
+        if use_selected_only and (selected_names is None or kb.name not in selected_names):
+            continue
+        if not include_zero_value and not kb.value:
+            continue
+        result.append(kb)
+    return result
 
 
 class OBJECT_OT_mio3sk_preset(Mio3SKOperator):
@@ -11,24 +29,36 @@ class OBJECT_OT_mio3sk_preset(Mio3SKOperator):
     bl_options = {"REGISTER", "UNDO", "INTERNAL"}
     preset: StringProperty(name="Preset")
     assign: BoolProperty(name="Assign", options={"SKIP_SAVE"})
+    use_selected_only: BoolProperty(name="Selected Keys Only", default=True)
+    include_zero_value: BoolProperty(name="Include Zero Value", default=True)
 
     def invoke(self, context, event):
         self.assign = event.ctrl
+        if self.assign:
+            return context.window_manager.invoke_props_dialog(self)
         return self.execute(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.prop(self, "use_selected_only")
+        layout.prop(self, "include_zero_value")
 
     def execute(self, context):
         obj = context.active_object
+        refresh_data(context, obj, check=True)
         key_blocks = obj.data.shape_keys.key_blocks
         prop_o = obj.mio3sk
 
         preset = prop_o.preset_list.get(self.preset)
         if preset is None:
-            return {"CALCELLED"}
-        # 上書き
+            return {"CANCELLED"}
         if self.assign:
-            valued_shape_keys = {sk for sk in obj.data.shape_keys.key_blocks if sk.value}
+            shape_keys_to_save = _get_shape_keys_to_save(
+                obj, self.use_selected_only, self.include_zero_value
+            )
             preset.shape_keys.clear()
-            for sk in valued_shape_keys:
+            for sk in shape_keys_to_save:
                 new_key = preset.shape_keys.add()
                 new_key.name = sk.name
                 new_key.value = sk.value
@@ -51,18 +81,25 @@ class OBJECT_OT_mio3sk_preset_list_add(Mio3SKGlobalOperator):
 
     quick: BoolProperty(name="Quick", options={"SKIP_SAVE"})
     name: StringProperty(name="Label", options={"SKIP_SAVE"})
+    use_selected_only: BoolProperty(name="Selected Keys Only", default=True)
+    include_zero_value: BoolProperty(name="Include Zero Value", default=True)
 
     def invoke(self, context, event):
         if self.quick:
             return context.window_manager.invoke_props_dialog(self)
-        else:
-            return self.execute(context)
+        return self.execute(context)
 
     def draw(self, context):
-        self.layout.prop(self, "name")
+        layout = self.layout
+        layout.prop(self, "name")
+        layout.use_property_split = True
+        layout.prop(self, "use_selected_only")
+        layout.prop(self, "include_zero_value")
 
     def execute(self, context):
         obj = context.active_object
+        if has_shape_key(obj):
+            refresh_data(context, obj, check=True)
         prop_o = obj.mio3sk
         preset_list = prop_o.preset_list
         new_name = get_unique_name(preset_list.keys(), self.name if self.name else "Preset")
@@ -71,9 +108,10 @@ class OBJECT_OT_mio3sk_preset_list_add(Mio3SKGlobalOperator):
         prop_o.preset_active_index = len(preset_list) - 1
 
         if has_shape_key(obj):
-
-            weighted_shape_keys = [kb for kb in obj.data.shape_keys.key_blocks if kb.value]
-            for kb in weighted_shape_keys:
+            shape_keys_to_save = _get_shape_keys_to_save(
+                obj, self.use_selected_only, self.include_zero_value
+            )
+            for kb in shape_keys_to_save:
                 new_key = new_item.shape_keys.add()
                 new_key.name = kb.name
                 new_key.value = kb.value

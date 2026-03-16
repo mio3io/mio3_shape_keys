@@ -367,6 +367,8 @@ class MIO3SK_PT_main(Mio3SKPanel):
             row.use_property_decorate = False
             row.use_property_split = True
             row.prop(prop_o, "preset_wrap")
+            row.operator("object.mio3sk_export_presets", icon="EXPORT", text="")
+            row.operator("object.mio3sk_import_presets", icon="IMPORT", text="")
         elif prop_o.preset_list:
             preset_list = prop_o.preset_list
             preset_list = [preset for preset in preset_list if not preset.hide]

@@ -62,3 +62,18 @@ Added ability to remove drivers from selected shape keys
 
 [Added Transfer Shape Key operator](https://github.com/WolfExplode/mio3_shape_keys_english/commit/7b92102b26e9e012bf0bad162ba0750fe81ce05a)
 - Transfers the drivers according to shape key name
+
+[Added new operator "Set Value To Zero"](https://github.com/WolfExplode/mio3_shape_keys_english/commit/9e1b6ea22cf99bc06eabd21c2f55356f9bdfbdd8)
+- sets the selected shape keys value to zero
+
+[Added new operator create vertex group from selected shape keys](https://github.com/WolfExplode/mio3_shape_keys_english/commit/41536d34ffc962b8293f53d767f7d4df8a16eff6)
+
+
+
+
+
+
+
+
+
+

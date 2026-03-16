@@ -82,9 +82,11 @@ class MIO3SK_UL_settings_tag_list(UIList):
 
 class MIO3SK_UL_settings_preset_list(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        split = layout.split(factor=0.73, align=False)
+        split = layout.split(factor=0.55, align=False)
         split.prop(item, "name", text="", emboss=False)
-        split.prop(item, "hide", text="Hide")
+        row = split.row(align=True)
+        row.prop(item, "export", text="Export")
+        row.prop(item, "hide", text="Hide")
 
 
 classes = [
