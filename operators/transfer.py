@@ -28,6 +28,34 @@ def _transfer_native_properties(source_kb, target_kb, target_obj):
         target_kb.vertex_group = source_kb.vertex_group
 
 
+def _transfer_driver(source_kb, target_kb, source_obj, target_obj):
+    """Copy driver from source shape key to target. Remaps variable targets from source_obj to target_obj."""
+    src_key = source_obj.data.shape_keys
+    tgt_key = target_obj.data.shape_keys
+    if not src_key or not src_key.animation_data:
+        return False
+    data_path = f'key_blocks["{source_kb.name}"].value'
+    src_fc = None
+    for fc in src_key.animation_data.drivers:
+        if fc.data_path == data_path:
+            src_fc = fc
+            break
+    if not src_fc:
+        return False
+    if target_kb.driver_remove("value"):
+        pass  # Removed existing
+    if not tgt_key.animation_data:
+        tgt_key.animation_data_create()
+    new_fc = tgt_key.animation_data.drivers.from_existing(src_driver=src_fc)
+    if target_kb.name != source_kb.name:
+        new_fc.data_path = f'key_blocks["{target_kb.name}"].value'
+    for var in new_fc.driver.variables:
+        for t in var.targets:
+            if t.id == source_obj:
+                t.id = target_obj
+    return True
+
+
 class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
     bl_idname = "object.mio3sk_shape_transfer"
     bl_label = "Transfer shape as shape key"
@@ -62,6 +90,11 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
     transfer_properties: BoolProperty(
         name="Transfer Properties",
         description="Copy shape key properties (mute, slider range, vertex group, tags, composer rules) from source",
+        default=False,
+    )
+    transfer_drivers: BoolProperty(
+        name="Transfer Drivers",
+        description="Copy drivers from source shape keys. Variable targets pointing to source object are remapped to target object",
         default=False,
     )
     override_existing: BoolProperty(
@@ -310,6 +343,8 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
                 if self.transfer_properties and source_shape:
                     _transfer_native_properties(source_shape, new_key, target_obj)
+                if self.transfer_drivers and source_shape and self.method == "KEY":
+                    _transfer_driver(source_shape, new_key, source_obj, target_obj)
                 last_processed_key = new_key
                 processed_key_names.add(key_name)
             except Exception as e:
@@ -688,6 +723,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         layout.prop(self, "override_existing")
         if self.method == "KEY":
             layout.prop(self, "transfer_properties")
+            layout.prop(self, "transfer_drivers")
 
 
 class OBJECT_OT_mio3sk_join_mesh_shape(OBJECT_OT_mio3sk_shape_transfer):
@@ -772,14 +808,55 @@ class OBJECT_OT_mio3sk_transfer_properties(OBJECT_OT_mio3sk_shape_transfer):
         return {"FINISHED"}
 
 
+class OBJECT_OT_mio3sk_transfer_drivers(OBJECT_OT_mio3sk_shape_transfer):
+    bl_idname = "object.mio3sk_transfer_drivers"
+    bl_label = "Transfer Drivers"
+    bl_description = "Copy drivers from source to target for matching shape key names. Variable targets pointing to source object are remapped to target object"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def invoke(self, context: Context, event):
+        return self.execute(context)
+
+    def execute(self, context):
+        self.start_time()
+        source_obj, target_obj = self.get_objects(context)
+        if not source_obj or not target_obj:
+            self.report({"ERROR"}, pgettext_rpt("Select two objects"))
+            return {"CANCELLED"}
+
+        if not source_obj.data.shape_keys or not target_obj.data.shape_keys:
+            self.report({"ERROR"}, pgettext_rpt("Both objects need shape keys"))
+            return {"CANCELLED"}
+
+        common_names = set(source_obj.data.shape_keys.key_blocks.keys()) & set(target_obj.data.shape_keys.key_blocks.keys())
+        if not common_names:
+            self.report({"WARNING"}, pgettext_rpt("No matching shape key names between objects"))
+            return {"CANCELLED"}
+
+        source_key_blocks = source_obj.data.shape_keys.key_blocks
+        target_key_blocks = target_obj.data.shape_keys.key_blocks
+        count = 0
+        for name in common_names:
+            source_kb = source_key_blocks.get(name)
+            target_kb = target_key_blocks.get(name)
+            if source_kb and target_kb and _transfer_driver(source_kb, target_kb, source_obj, target_obj):
+                count += 1
+
+        self.report({"INFO"}, pgettext_rpt("Transferred drivers for {} shape keys").format(count))
+        self.print_time()
+        return {"FINISHED"}
+
+
 def register():
     bpy.utils.register_class(OBJECT_OT_mio3sk_shape_transfer)
     bpy.utils.register_class(OBJECT_OT_mio3sk_join_mesh_shape)
     bpy.utils.register_class(OBJECT_OT_mio3sk_transfer_shape_key)
     bpy.utils.register_class(OBJECT_OT_mio3sk_transfer_properties)
+    bpy.utils.register_class(OBJECT_OT_mio3sk_transfer_drivers)
 
 
 def unregister():
+    bpy.utils.unregister_class(OBJECT_OT_mio3sk_transfer_drivers)
     bpy.utils.unregister_class(OBJECT_OT_mio3sk_transfer_properties)
     bpy.utils.unregister_class(OBJECT_OT_mio3sk_transfer_shape_key)
     bpy.utils.unregister_class(OBJECT_OT_mio3sk_join_mesh_shape)

@@ -27,6 +27,7 @@ class MIO3SK_MT_main(bpy.types.Menu):
         layout.operator("object.mio3sk_join_mesh_shape", icon="FILE_NEW")
         layout.operator("object.mio3sk_transfer_shape_key", icon="FILE_NEW")
         layout.operator("object.mio3sk_transfer_properties", icon="COPY_ID")
+        layout.operator("object.mio3sk_transfer_drivers", icon="DRIVER")
 
         layout.separator()
         layout.operator("object.mio3sk_replace")
