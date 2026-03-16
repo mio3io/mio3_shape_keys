@@ -42,3 +42,23 @@ https://addon.mio3io.com/
 ## Ver2
 
 Ver2 can be downloaded from [releases](https://github.com/mio3io/mio3_shape_keys/releases).
+
+
+## Changelog  
+version = "3.0.0-beta-20260315"
+https://youtu.be/vK5ssYbRR2o
+
+Added ability to remove drivers from selected shape keys
+- New operator to remove drivers from active, selected, or all shape keys.
+
+[Added transfer properties](https://github.com/WolfExplode/mio3_shape_keys_english/commit/08a26b8643530a09e708ecf5639c438badd04c75)
+- Transfer Properties option added to the Transfer Shape Key dialog (mute, slider range, vertex group, tags, composer rules).
+
+[Optimized Transfer](https://github.com/WolfExplode/mio3_shape_keys_english/commit/3df7a487d14fda53a59486bdcfe647b3497fecd6)
+- Vectorized interpolation, scipy cKDTree fallback, buffer reuse, matrix precomputation. ~60% faster on large meshes.
+
+[Added transfer properties operator](https://github.com/WolfExplode/mio3_shape_keys_english/commit/909662d7b383b003dd79630e94ae5847b15b0604)
+- Standalone Transfer Properties operator for two objects with matching shape key names.
+
+[Added Transfer Shape Key operator](https://github.com/WolfExplode/mio3_shape_keys_english/commit/7b92102b26e9e012bf0bad162ba0750fe81ce05a)
+- Transfers the drivers according to shape key name
