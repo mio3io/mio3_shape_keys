@@ -14,7 +14,18 @@ from mathutils import Vector, kdtree
 from mathutils.geometry import intersect_point_tri_2d
 from ..classes.operator import Mio3SKGlobalOperator
 from ..globals import DEBUG
-from ..utils.ext_data import refresh_data, transfer_ext_data
+from ..utils.ext_data import refresh_data, transfer_ext_data, add_ext_data
+
+
+def _transfer_native_properties(source_kb, target_kb, target_obj):
+    """Copy Blender shape key properties: mute, interpolation, slider range, lock_shape, vertex_group."""
+    target_kb.mute = source_kb.mute
+    target_kb.interpolation = source_kb.interpolation
+    target_kb.slider_min = source_kb.slider_min
+    target_kb.slider_max = source_kb.slider_max
+    target_kb.lock_shape = source_kb.lock_shape
+    if source_kb.vertex_group and source_kb.vertex_group in target_obj.vertex_groups:
+        target_kb.vertex_group = source_kb.vertex_group
 
 
 class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
@@ -52,6 +63,11 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         name="Transfer Properties",
         description="Copy shape key properties (mute, slider range, vertex group, tags, composer rules) from source",
         default=False,
+    )
+    override_existing: BoolProperty(
+        name="Override existing shape keys",
+        description="Replace data of existing shape keys with the same name. When disabled, skip keys that already exist on target",
+        default=True,
     )
 
     def get_objects(self, context) -> tuple[Object, Object]:
@@ -236,13 +252,24 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                 "foreach_set": 0.0,
             }
 
+        last_processed_key = None
+        processed_key_names = set()
         for kb in target_keys:
             if self.method == "MESH":
                 source_shape_name = source_shape.name
-                new_key = target_obj.shape_key_add(name=source_obj.name, from_mix=False)
+                key_name = source_obj.name
             else:
                 source_shape_name = kb.name
-                new_key = target_obj.shape_key_add(name=kb.name, from_mix=False)
+                key_name = kb.name
+
+            target_key_blocks = target_obj.data.shape_keys.key_blocks
+            existing_key = target_key_blocks.get(key_name)
+            if existing_key is not None and not self.override_existing:
+                continue
+            if existing_key is not None:
+                new_key = existing_key
+            else:
+                new_key = target_obj.shape_key_add(name=key_name, from_mix=False)
 
             source_shape = source_obj.data.shape_keys.key_blocks.get(source_shape_name)
 
@@ -282,13 +309,9 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
                 new_key.value = 0.0
 
                 if self.transfer_properties and source_shape:
-                    new_key.mute = source_shape.mute
-                    new_key.interpolation = source_shape.interpolation
-                    new_key.slider_min = source_shape.slider_min
-                    new_key.slider_max = source_shape.slider_max
-                    new_key.lock_shape = source_shape.lock_shape
-                    if source_shape.vertex_group and source_shape.vertex_group in target_obj.vertex_groups:
-                        new_key.vertex_group = source_shape.vertex_group
+                    _transfer_native_properties(source_shape, new_key, target_obj)
+                last_processed_key = new_key
+                processed_key_names.add(key_name)
             except Exception as e:
                 self.report({"ERROR"}, str(e))
 
@@ -313,7 +336,8 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
         if self.target == "ACTIVE":
             self.report({"INFO"}, pgettext_rpt("{} vertices transferred, {} interpolated").format(len(direct_map), len(interp_map)))
 
-        target_obj.active_shape_key_index = len(target_obj.data.shape_keys.key_blocks) - 1
+        if last_processed_key is not None:
+            target_obj.active_shape_key_index = target_obj.data.shape_keys.key_blocks.find(last_processed_key.name)
 
         refresh_data(context, target_obj, check=True, group=True)
 
@@ -326,6 +350,8 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
             source_prop = source_obj.mio3sk
             target_prop = target_obj.mio3sk
             for kb in target_keys:
+                if kb.name not in processed_key_names:
+                    continue
                 source_ext = source_prop.ext_data.get(kb.name)
                 target_ext = target_prop.ext_data.get(kb.name)
                 transfer_ext_data(source_ext, target_ext, target_key_blocks)
@@ -659,6 +685,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
             else:
                 layout.prop(self, "threshold")
         layout.prop(self, "scale_normalize")
+        layout.prop(self, "override_existing")
         if self.method == "KEY":
             layout.prop(self, "transfer_properties")
 
@@ -681,13 +708,79 @@ class OBJECT_OT_mio3sk_transfer_shape_key(OBJECT_OT_mio3sk_shape_transfer):
         return super().invoke(context, event)
 
 
+class OBJECT_OT_mio3sk_transfer_properties(OBJECT_OT_mio3sk_shape_transfer):
+    bl_idname = "object.mio3sk_transfer_properties"
+    bl_label = "Transfer Shape Key Properties"
+    bl_description = "Only if both objects share a shape key of the same name, and does not override the shape keys themselves"
+    bl_options = {"REGISTER", "UNDO"}
+
+    def invoke(self, context: Context, event):
+        return self.execute(context)
+
+    def execute(self, context):
+        self.start_time()
+        source_obj, target_obj = self.get_objects(context)
+        if not source_obj or not target_obj:
+            self.report({"ERROR"}, pgettext_rpt("Select two objects"))
+            return {"CANCELLED"}
+
+        if not source_obj.data.shape_keys or not target_obj.data.shape_keys:
+            self.report({"ERROR"}, pgettext_rpt("Both objects need shape keys"))
+            return {"CANCELLED"}
+
+        source_keys = set(source_obj.data.shape_keys.key_blocks.keys())
+        target_keys = set(target_obj.data.shape_keys.key_blocks.keys())
+        common_names = source_keys & target_keys
+
+        if not common_names:
+            self.report({"WARNING"}, pgettext_rpt("No matching shape key names between objects"))
+            return {"CANCELLED"}
+
+        refresh_data(context, source_obj, check=True)
+        refresh_data(context, target_obj, check=True)
+
+        target_key_blocks = target_obj.data.shape_keys.key_blocks
+        source_key_blocks = source_obj.data.shape_keys.key_blocks
+        source_prop = source_obj.mio3sk
+        target_prop = target_obj.mio3sk
+
+        missing_target = {name for name in common_names if target_prop.ext_data.get(name) is None}
+        if missing_target:
+            add_ext_data(target_obj, missing_target)
+
+        count = 0
+        for name in common_names:
+            transferred = False
+            source_kb = source_key_blocks.get(name)
+            target_kb = target_key_blocks.get(name)
+            if source_kb and target_kb:
+                _transfer_native_properties(source_kb, target_kb, target_obj)
+                transferred = True
+
+            source_ext = source_prop.ext_data.get(name)
+            target_ext = target_prop.ext_data.get(name)
+            if source_ext and target_ext:
+                transfer_ext_data(source_ext, target_ext, target_key_blocks)
+                transferred = True
+
+            if transferred:
+                count += 1
+
+        refresh_data(context, target_obj, group=True, composer=True)
+        self.report({"INFO"}, pgettext_rpt("Transferred properties for {} shape keys").format(count))
+        self.print_time()
+        return {"FINISHED"}
+
+
 def register():
     bpy.utils.register_class(OBJECT_OT_mio3sk_shape_transfer)
     bpy.utils.register_class(OBJECT_OT_mio3sk_join_mesh_shape)
     bpy.utils.register_class(OBJECT_OT_mio3sk_transfer_shape_key)
+    bpy.utils.register_class(OBJECT_OT_mio3sk_transfer_properties)
 
 
 def unregister():
+    bpy.utils.unregister_class(OBJECT_OT_mio3sk_transfer_properties)
     bpy.utils.unregister_class(OBJECT_OT_mio3sk_transfer_shape_key)
     bpy.utils.unregister_class(OBJECT_OT_mio3sk_join_mesh_shape)
     bpy.utils.unregister_class(OBJECT_OT_mio3sk_shape_transfer)
