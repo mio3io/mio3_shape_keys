@@ -49,6 +49,10 @@ def move_shape_key_below(obj, anchor_idx, target_idx):
     key_blocks = obj.data.shape_keys.key_blocks
     count = len(key_blocks)
 
+    # ToDo: Blender5の互換性
+    if bpy.app.version >= (5, 0, 0):
+        obj.data.shape_keys.key_blocks.foreach_set("select", [False] * count)
+
     if count < 2:
         return
     if anchor_idx < 0 or target_idx < 0:

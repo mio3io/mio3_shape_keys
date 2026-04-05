@@ -228,6 +228,10 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
             key_names.insert(key_names.index(name) + 2, new_kb_r.name)
 
         if len(key_names) != before_len:
+            # ToDo: Blender5の互換性
+            if bpy.app.version >= (5, 0, 0):
+                key_blocks.foreach_set("select", [False] * len(key_blocks))
+
             first_idx = key_names.index(selected_names[0])
             sorded_names = key_names[first_idx:]
             wm = context.window_manager
@@ -397,6 +401,10 @@ class OBJECT_OT_mio3sk_generate_opposite(Mio3SKOperator):
 
         # 複数ある場合
         if len(selected_names) > 1 and len(key_names) != before_len:
+            # ToDo: Blender5の互換性
+            if bpy.app.version >= (5, 0, 0):
+                key_blocks.foreach_set("select", [False] * len(key_blocks))
+
             first_idx = key_names.index(selected_names[0])
             sorded_names = key_names[first_idx:]
             wm = context.window_manager

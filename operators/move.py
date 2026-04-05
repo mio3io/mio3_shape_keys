@@ -40,6 +40,12 @@ class OBJECT_OT_mio3sk_move(Mio3SKOperator):
     def execute(self, context):
         obj = context.active_object
 
+        key_blocks = obj.data.shape_keys.key_blocks
+
+        # ToDo: Blender5の互換性
+        if bpy.app.version >= (5, 0, 0):
+            key_blocks.foreach_set("select", [False] * len(key_blocks))
+
         if self.type in {"TOP", "BOTTOM"}:
             bpy.ops.object.shape_key_move(type=self.type)
         elif self.type == "UP":
@@ -81,6 +87,10 @@ class OBJECT_OT_mio3sk_move_below(Mio3SKOperator):
             move_idx = key_blocks.find(selected_names[0])
             move_shape_key_below(obj, anchor_idx, move_idx)
         else:
+            # ToDo: Blender5の互換性
+            if bpy.app.version >= (5, 0, 0):
+                key_blocks.foreach_set("select", [False] * len(key_blocks))
+
             remaining = [name for name in key_blocks.keys() if name not in selected_names]
             active_index = remaining.index(active_kb.name)
             sorted_names = remaining[active_index:1] + selected_names + remaining[active_index + 1 :]
@@ -135,6 +145,9 @@ class OBJECT_OT_mio3sk_move_group(Mio3SKOperator):
             return {"CANCELLED"}
 
         current_key_name = obj.active_shape_key.name
+
+        if bpy.app.version >= (5, 0, 0):
+            key_blocks.foreach_set("select", [False] * len(key_blocks))
 
         wm = context.window_manager
         wm.progress_begin(0, len(sorted_names))
