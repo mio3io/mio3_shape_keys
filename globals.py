@@ -1,10 +1,7 @@
 import bpy
 import os
-import sys
 
-# DEBUG = True
-DEBUG = bool("--python" in sys.argv)
-# print(bpy.app.python_args)
+DEBUG = "vscode_development" in __file__
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "resource")
 TAGS_DIR = os.path.join(TEMPLATE_DIR, "tags")
