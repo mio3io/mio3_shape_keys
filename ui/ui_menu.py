@@ -230,6 +230,7 @@ class MIO3SK_PT_options_popover(Panel):
 
         if obj.active_shape_key:
             layout.prop(obj.data.shape_keys, "use_relative")
+        layout.prop(obj, "add_rest_position_attribute")
 
 
 class MIO3SK_MT_side(Menu):
