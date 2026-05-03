@@ -34,7 +34,9 @@ class OBJECT_OT_mio3sk_remove(Mio3SKOperator):
         return obj is not None and has_shape_key(obj) and obj.mode == "OBJECT"
 
     def invoke(self, context, event):
-        if self.mode != "ACTIVE":
+        if self.mode != "ACTIVE" or event.alt:
+            if event.alt:
+                self.mode = "SELECTED"
             return context.window_manager.invoke_props_dialog(self)
         return self.execute(context)
         
