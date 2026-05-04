@@ -52,6 +52,14 @@ def callback_active_shape_key_index():
 
     refresh_data(context, obj, check=True)
 
+    # Smart PReviewの更新
+    if prop_w.smart_preview and not obj.show_only_shape_key:
+        for kb in obj.data.shape_keys.key_blocks[1:]:
+            if kb.name == active_kb_name and not kb.lock_shape:
+                kb.value = 1.0
+            elif not kb.lock_shape:
+                kb.value = 0.0
+
     # アクティブシェイプキーの同期
     if prefs.use_sync_active_shapekey and is_sync_collection(obj):
         for sync_obj in prop_o.syncs.objects:

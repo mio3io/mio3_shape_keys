@@ -44,7 +44,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         key_block_len = 0
         prop_o = obj.mio3sk
         prop_s = context.scene.mio3sk
-        # prop_w = context.window_manager.mio3sk
+        prop_w = context.window_manager.mio3sk
 
         shape_keys = obj.data.shape_keys
         active_shape_key = obj.active_shape_key
@@ -70,10 +70,10 @@ class MIO3SK_PT_main(Mio3SKPanel):
 
         # 選択キーボタン
         if prop_s.show_select:
-            list_foot = layout.split(factor=0.72, align=True)
+            list_foot = layout.split(factor=0.7, align=True)
             MIO3SK_PT_main.layout_select_keys(list_foot, prop_o, prop_o.selected_len)
         else:
-            list_foot = layout.split(factor=0.72, align=True)
+            list_foot = layout.split(factor=0.7, align=True)
             list_foot.row(align=True)
 
         if key_block_len != len(prop_o.ext_data):
@@ -85,7 +85,7 @@ class MIO3SK_PT_main(Mio3SKPanel):
         sub.alignment = "RIGHT"
         # sub.operator("object.mio3sk_clear_filter", icon_value=icons.filter_reset, text="")
         sub.separator(factor=0.5)
-
+        sub.prop(prop_w, "smart_preview", text="", icon="RENDER_STILL")
         sub.prop(obj, "show_only_shape_key", text="")
         sub.prop(obj, "use_shape_key_edit_mode", text="")
         sub.separator()
