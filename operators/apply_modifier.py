@@ -56,15 +56,17 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
         obj = context.active_object
 
         selected_objects = [ob for ob in context.selected_objects if is_local_obj(ob)]
-
         selected_modifiers = [item.name for item in self.apply_modifiers if item.selected]
+        if not selected_modifiers:
+            self.report({"WARNING"}, "適用するモディフィアが選択されていません")
+            return {"CANCELLED"}
 
         error = False
         for obj in selected_objects:
             if any(mod.name in selected_modifiers for mod in obj.modifiers):
                 if not self.modifier_apply(context, obj, selected_modifiers):
                     error = True
-                    self.report({"WARNING"}, "[Object:{}] 一部のシェイプキーが統合できませんでした。Ctrl+Zで元に戻せます。選択キー→「エラー要因のキーを選択」でエラーになるキーを確認できます。".format(obj.name))
+                    self.report({"ERROR"}, "[Object:{}] 一部のシェイプキーが統合できませんでした。Ctrl+Zで元に戻せます。選択キー→「エラー要因のキーを選択」でエラーになるキーを確認できます。".format(obj.name))
 
         if not error:
             self.report({"INFO"}, "モディフィアを適用しました")
@@ -97,12 +99,14 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
 
         key_blocks.foreach_set("value", [0.0] * len(key_blocks))
 
-        # 使用していないキー
+        sync_objects = self.get_sync_objects(obj)
+
+        # 除外対称
         v_len = len(obj.data.vertices)
         basis_co = np.empty(v_len * 3, dtype=np.float32)
         basis_kb.data.foreach_get("co", basis_co)
         unused = set()
-        if not self.apply_sync_collection:
+        if not sync_objects:
             for kb in key_blocks[1:]:
                 shape_co = np.empty(v_len * 3, dtype=np.float32)
                 kb.data.foreach_get("co", shape_co)
@@ -137,7 +141,6 @@ class OBJECT_OT_mio3sk_modifier_apply(Mio3SKOperator):
                 bpy.ops.object.modifier_apply(modifier=modifier_name)
 
         modifier_states = self.store_modifier_state(obj)
-        sync_objects = self.get_sync_objects(obj)
 
         obj.shape_key_add(name="Basis", from_mix=False)
         obj.select_set(True)
