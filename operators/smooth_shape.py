@@ -17,7 +17,7 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
         options={"HIDDEN"},
         items=[("LAPLACIAN", "Laplacian", ""), ("SHAPE_KEY", "Shape Key", "")],
     )
-    blend: FloatProperty(name="Blend", default=1, min=0, max=1, options={"HIDDEN"})
+    blend: FloatProperty(name="Blend", default=1, min=0, max=1)
     iterations: EnumProperty(
         name="Repeat",
         default="1",
@@ -38,17 +38,14 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
             selected_verts.update(find_x_mirror_verts(bm, selected_verts))
 
         basis_kb = obj.data.shape_keys.reference_key
-        if not obj.data.shape_keys or basis_kb == obj.active_shape_key:
+        if basis_kb == obj.active_shape_key:
             self.mode = "LAPLACIAN"
             self.smooth_laplacian(obj, bm)
         else:
             self.mode = "SHAPE_KEY"
-            active_kb = obj.active_shape_key
-
             basis_layer = bm.verts.layers.shape.get(basis_kb.name)
-            shape_layer = bm.verts.layers.shape.get(active_kb.name)
-
-            self.smooth_shape_key(obj, bm, selected_verts, basis_layer, shape_layer)
+            shape_layer = bm.verts.layers.shape.get(obj.active_shape_key.name)
+            self.smooth_shape_key(obj, selected_verts, basis_layer, shape_layer)
 
         bm.normal_update()
         bmesh.update_edit_mesh(obj.data)
@@ -56,53 +53,33 @@ class MESH_OT_mio3sk_smooth_shape(Mio3SKOperator):
         self.print_time()
         return {"FINISHED"}
 
-    def smooth_shape_key(self, obj, bm, selected_verts, basis_layer, shape_layer):
-        vert_neighbors = {}
-        for v in selected_verts:
-            vert_neighbors[v.index] = [e.other_vert(v) for e in v.link_edges]
+    def smooth_shape_key(self, obj, selected_verts, basis_layer, shape_layer):
+        vert_neighbors = {v: [e.other_vert(v) for e in v.link_edges] for v in selected_verts}
 
-        offsets = {}
-        max_offset = 0.0
-        for v in selected_verts:
-            basis_co = v[basis_layer]
-            shape_co = v[shape_layer]
-            offset = (shape_co - basis_co).length
-            offsets[v.index] = offset
-            max_offset = max(max_offset, offset)
-        max_offset = max(max_offset, 0.000001)
+        offsets = {v: (v[shape_layer] - v[basis_layer]).length for v in selected_verts}
+        max_offset = max(max(offsets.values(), default=0.0), 0.000001)
 
         anti_bump_factor = 1.0 - self.anti_bump
-        movement_factors = {}
-        for v_idx, offset in offsets.items():
-            normalized_offset = offset / max_offset
-            movement_factors[v_idx] = 1.0 - normalized_offset * anti_bump_factor
+        movement_factors = {
+            v: 1.0 - (offset / max_offset) * anti_bump_factor for v, offset in offsets.items()
+        }
 
         blend = self.blend
         for _ in range(int(self.iterations)):
             new_positions = {}
-
-            for v in selected_verts:
-                v_idx = v.index
-                connected_verts = vert_neighbors[v_idx]
-                if not connected_verts:
+            for v, neighbors in vert_neighbors.items():
+                if not neighbors:
                     continue
-
-                basis_co = v[basis_layer]
-                shape_co = v[shape_layer]
 
                 # 平均を計算
                 total_offset = Vector((0, 0, 0))
-                for conn_v in connected_verts:
+                for conn_v in neighbors:
                     total_offset += conn_v[shape_layer] - conn_v[basis_layer]
-
-                avg_offset = total_offset / len(connected_verts)
-                blended_co = basis_co + avg_offset
+                blended_co = v[basis_layer] + total_offset / len(neighbors)
 
                 # 凸凹補正
-                adjusted_factor = blend * movement_factors[v_idx]
-                result_co = shape_co.lerp(blended_co, adjusted_factor)
-
-                new_positions[v] = result_co
+                adjusted_factor = blend * movement_factors[v]
+                new_positions[v] = v[shape_layer].lerp(blended_co, adjusted_factor)
 
             for v, new_co in new_positions.items():
                 v.co = new_co
