@@ -3,6 +3,8 @@ from bpy.types import AddonPreferences
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 from .ui import ui_side
 
+DEBUG = "vscode_development" in __file__
+DEVELOPER_DEFAULT = True if DEBUG else False
 
 def reregister_panel_class(cls, category):
     if hasattr(cls, "bl_category"):
@@ -25,7 +27,7 @@ def update_panel(self, context):
 class MIO3SK_Preferences(AddonPreferences):
     bl_idname = __package__
 
-    advanced: BoolProperty(name="Advanced Mode", default=True, options=set())
+    developer: BoolProperty(name="Developer Extras", default=DEVELOPER_DEFAULT, options=set())
     category: StringProperty(name="Tab", default="Mio3", update=update_panel, options=set())
 
     use_sync_active_shapekey: BoolProperty(name="Active Shape Key", default=True, options=set())
@@ -43,6 +45,10 @@ class MIO3SK_Preferences(AddonPreferences):
         options=set(),
     )
     sidebar_factor: FloatProperty(name="Sidebar Size Factor", default=1.0, min=0.5, max=2.0, options=set())
+    zero_new_key: BoolProperty(name="シェイプキーの初期値をゼロにする", default=True, options=set())
+
+    def new_key_value(self):
+        return 0.0 if self.zero_new_key else 1.0
 
     def draw(self, context):
         layout = self.layout
@@ -73,13 +79,20 @@ class MIO3SK_Preferences(AddonPreferences):
 
         split = col.split(factor=0.35)
         split.alignment = "RIGHT"
+        split.label(text="")
+        split.prop(prefs, "zero_new_key")
+
+        split = col.split(factor=0.35)
+        split.alignment = "RIGHT"
         split.label(text="グループアクション")
-        split.prop(prefs, "group_action", text="")
+        split.row().prop(prefs, "group_action", expand=True)
+
+        col.separator()
 
         split = col.split(factor=0.35)
         split.alignment = "RIGHT"
         split.label(text="")
-        split.prop(prefs, "advanced")
+        split.prop(prefs, "developer")
 
 
 def register():

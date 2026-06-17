@@ -317,6 +317,8 @@ class OBJECT_OT_mio3sk_generate_lr(Mio3SKOperator):
                 create_composer_rule(ext_l, "+X", active_kb.name, smoothing_radius=self.smoothing_radius)
                 create_composer_rule(ext_r, "-X", active_kb.name, smoothing_radius=self.smoothing_radius)
 
+        active_kb.value = 0.0
+
         return new_kb_l, new_kb_r
 
 

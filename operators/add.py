@@ -6,8 +6,8 @@ from bpy.props import BoolProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.utils import has_shape_key, is_sync_collection, get_unique_name, move_shape_key_below
 from ..utils.ext_data import refresh_data
-from ..globals import SHAPE_KEYS_DIR, SHAPE_SYNC_RULES_DIR
 from ..utils import resources
+from ..globals import SHAPE_KEYS_DIR, SHAPE_SYNC_RULES_DIR, get_preferences
 
 def get_collection_keys(obj: Object):
     collection_keys = []
@@ -67,6 +67,8 @@ class OBJECT_OT_mio3sk_shape_key_add(Mio3SKGlobalOperator):
     def add_shape_key(self, obj: Object, name: str):
         new_key = obj.shape_key_add(name=name, from_mix=self.from_mix)
         obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
+        prefs = get_preferences()
+        new_key.value = prefs.new_key_value()
         return new_key
 
     def draw(self, context):
@@ -96,6 +98,9 @@ class OBJECT_OT_mio3sk_add_below(Mio3SKOperator):
         move_idx = len(key_blocks)
         new_name = get_unique_name(key_blocks.keys(), "Key")
         new_key = obj.shape_key_add(name=new_name, from_mix=False)
+        prefs = get_preferences()
+        new_key.value = prefs.new_key_value()
+
         move_shape_key_below(obj, active_idx, move_idx)
         obj.active_shape_key_index = key_blocks.find(new_key.name)
         refresh_data(context, obj, check=True, group=True)

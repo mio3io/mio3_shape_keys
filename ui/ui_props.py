@@ -1,6 +1,7 @@
 import bpy
 from ..classes.operator import Mio3SKPanel
 from ..utils.utils import has_shape_key
+from ..globals import get_preferences
 
 
 class MIO3SK_PT_sub_properties(Mio3SKPanel):
@@ -22,7 +23,7 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
     def draw(self, context):
 
         layout = self.layout
-        # pref = get_preferences()
+        prefs = get_preferences()
         obj = context.object
         prop_o = obj.mio3sk
         prop_s = context.scene.mio3sk
@@ -132,10 +133,10 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             sub.prop(ext, "group_color", text="グループカラー")
             sub.prop(ext, "is_group_hidden", text="グループ一覧で非表示")
 
-        # if pref.advanced:
-        #     col.prop(ext, "name_ja")
-        #     col.prop(ext, "old_name")
-        #     col.prop(ext, "old_ratio")
+        if prefs.developer:
+            col.prop(ext, "name_ja")
+            col.prop(ext, "old_name")
+            col.prop(ext, "old_ratio")
 
     def layout_deform(self, box, obj, ext):
         col = box.column()
