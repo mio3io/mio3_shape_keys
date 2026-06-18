@@ -95,7 +95,7 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             col = layout.column()
             sub = col.column(align=True)
     
-            split = sub.split(align=True, factor=0.35)
+            split = sub.split(align=True, factor=0.4)
             split.alignment = "RIGHT"
             split.label(text="Min")
             sub_row = split.row(align=True)
@@ -105,7 +105,7 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             op = sub_row.operator("object.mio3sk_set_props", text="", icon="REMOVE")
             op.mode, op.index, op.value, op.add = "slider_min", active_shape_key_index, -1, True
 
-            split = sub.split(align=True, factor=0.35)
+            split = sub.split(align=True, factor=0.4)
             split.alignment = "RIGHT"
             split.label(text="Max")
             sub_row = split.row(align=True)
