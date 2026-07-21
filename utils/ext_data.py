@@ -220,8 +220,6 @@ def refresh_filter_flag(context: Context, obj: Object):
     ext_data = prop_o.ext_data
     len_ext = len(ext_data)
 
-    ext_data.foreach_set("filter_flag", (False,) * len_ext)
-
     basis_name = shape_keys.reference_key.name
 
     filter_select = prop_o.filter_select
@@ -264,30 +262,32 @@ def refresh_filter_flag(context: Context, obj: Object):
             if current_hide:
                 hide_names.add(ext.name)
 
-    for ext in ext_data:
+    # フラグは Python 側で組み立てて最後に一括書き込みする（個別の RNA 書き込みを避ける）
+    flags = [False] * len_ext
+    for i, ext in enumerate(ext_data):
         name = ext.name
         if name == basis_name:
             continue
 
         # グループ非表示
         if name in hide_names:
-            ext.filter_flag = True
+            flags[i] = True
             continue
 
         # 選択フィルター
         if filter_select and not ext.select:
-            ext.filter_flag = True
+            flags[i] = True
             continue
 
         if filter_used:
             kb = key_blocks.get(name)
             if kb is None or kb.value == 0.0:
-                ext.filter_flag = True
+                flags[i] = True
                 continue
 
         # 名前フィルター
         if name_filter and (name_filter not in name.lower()):
-            ext.filter_flag = True
+            flags[i] = True
             continue
 
         # タグフィルター
@@ -309,20 +309,23 @@ def refresh_filter_flag(context: Context, obj: Object):
             flag = not ok
             if filter_invert:
                 flag = not flag
-            ext.filter_flag = flag
+            flags[i] = flag
 
-    refresh_ui_select(obj)
+    ext_data.foreach_set("filter_flag", flags)
+
+    refresh_ui_select(obj, filter_data=flags)
 
     # print("  🍋 {:.5f} refresh_filter_flag".format(time.time() - start_time))
 
 
-def refresh_ui_select(obj: Object):
+def refresh_ui_select(obj: Object, filter_data=None):
     prop_o = obj.mio3sk
     len_ext = len(prop_o.ext_data)
     select_data = [False] * len_ext
-    filter_data = [False] * len_ext
     prop_o.ext_data.foreach_get("select", select_data)
-    prop_o.ext_data.foreach_get("filter_flag", filter_data)
+    if filter_data is None:
+        filter_data = [False] * len_ext
+        prop_o.ext_data.foreach_get("filter_flag", filter_data)
     prop_o.selected_len = sum(select_data)
     prop_o.visible_len = len_ext - sum(filter_data)
 
