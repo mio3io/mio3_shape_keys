@@ -58,27 +58,35 @@ def check_update(context: Context, obj: Object, callback_rename=None):
         return latest_key_names
 
     latest_key_names_set, old_key_names_set = set(latest_key_names), set(old_key_names)
+
+    # 名前リストが同じなら並べ替えのみ
+    if latest_key_names_set == old_key_names_set:
+        return latest_key_names
+
     removed_keys = old_key_names_set - latest_key_names_set
     added_keys = latest_key_names_set - old_key_names_set
 
     # 名前の変更をチェック
     rename_keys = dict()
-    if len(old_key_names) == len(latest_key_names):
+    zip_valid = len(old_key_names) == len(latest_key_names)
+    if zip_valid:
         for old_name, new_name in zip(old_key_names, latest_key_names):
-            if old_name != new_name:
+            if old_name == new_name:
+                continue
+            if old_name in removed_keys and new_name in added_keys:
                 rename_keys[old_name] = new_name
+            else:
+                zip_valid = False
+                break
 
-    if rename_keys:
-        if set(rename_keys.keys()) == set(rename_keys.values()):
-            return latest_key_names  # 移動のみ
-
+    if zip_valid and rename_keys:
         for old_name, new_name in rename_keys.items():
             # debug_function("[🍇RENAME] <{}> Shapekey {} -> {}", [obj.name, old_name, new_name])
             rename_ext_data(context, obj, old_name, new_name)
             if callback_rename:
                 callback_rename(context, obj, old_name, new_name)
 
-    elif added_keys or removed_keys:
+    else:
         if added_keys:
             debug_function("[🍏ADD] <{}> Shapekey {}", [obj.name, added_keys])
             add_ext_data(obj, added_keys)
@@ -273,7 +281,7 @@ def refresh_filter_flag(context: Context, obj: Object):
 
         if filter_used:
             kb = key_blocks.get(name)
-            if kb.value == 0.0:
+            if kb is None or kb.value == 0.0:
                 ext.filter_flag = True
                 continue
 
