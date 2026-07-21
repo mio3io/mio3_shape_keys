@@ -382,7 +382,7 @@ class MIO3SK_UL_shape_keys(UIList):
     def get_icon_for_key_block(self, key_block, active_ext, ext):
         if not active_ext or not ext:
             return icons.default
-        if active_ext.composer_enabled is not None and key_block.name in active_ext.composer_source:
+        if key_block.name in active_ext.composer_source:
             return icons.parent  # アクティブキーの親
         if ext.composer_enabled:
             return icons.linked  # ルールあり
@@ -397,7 +397,7 @@ class MIO3SK_UL_shape_keys(UIList):
         row_name = split.row(align=True)
         if obj.active_shape_key:
             active_ext = prop_o.ext_data.get(obj.active_shape_key.name)
-            ext = obj.mio3sk.ext_data.get(key_block.name)
+            ext = prop_o.ext_data.get(key_block.name)
             if ext:
                 icon_value = self.get_icon_for_key_block(key_block, active_ext, ext)
                 if index > 0:
@@ -468,14 +468,17 @@ class MIO3SK_UL_shape_keys(UIList):
                 row.prop(key_block, "lock_shape", text="", emboss=False)
 
     def filter_items(self, context, data, propname):
-        obj = context.object
         items = getattr(data, propname)
 
-        ext_data = obj.mio3sk.ext_data
-        ext_names = {name for name, ext in ext_data.items() if ext.filter_flag}
+        ext_data = context.object.mio3sk.ext_data
+        len_ext = len(ext_data)
+        flags = [False] * len_ext
+        ext_data.foreach_get("filter_flag", flags)
+        ext_keys = ext_data.keys()
+        hidden_names = {ext_keys[i] for i in range(len_ext) if flags[i]}
 
         bit_on = self.bitflag_filter_item
-        flt_flags = [bit_on if (item.name not in ext_names) else 0 for item in items]
+        flt_flags = [0 if (name in hidden_names) else bit_on for name in items.keys()]
 
         flt_order = []
         if self.use_filter_sort_alpha and len(items) > 1:
