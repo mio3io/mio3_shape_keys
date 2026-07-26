@@ -14,7 +14,7 @@ class MESH_OT_mio3sk_reset(Mio3SKOperator):
     @classmethod
     def poll(cls, context):
         obj = context.active_object
-        return obj is not None and obj.type in {"MESH", "LATTICE"}
+        return obj is not None and obj.type in {"MESH", "LATTICE"} and obj.mode == "EDIT" # 一旦編集モードのみ
 
     def invoke(self, context, event):
         obj = context.active_object
@@ -29,32 +29,33 @@ class MESH_OT_mio3sk_reset(Mio3SKOperator):
             return {"CANCELLED"}
         
         active_kb = obj.active_shape_key
+        basis_kb = obj.data.shape_keys.reference_key
+
+        if active_kb.lock_shape:
+            self.report({"ERROR"}, "Active Shape Key is Locked")
+            return {"CANCELLED"}
 
         if obj.type == "LATTICE":
             if obj.mode == "EDIT":
                 bpy.ops.object.mode_set(mode="OBJECT")
-                if not active_kb.lock_shape:
-                    for i, point in enumerate(obj.data.points):
-                        if point.select:
-                            active_kb.data[i].co = point.co.copy()
-                bpy.ops.object.mode_set(mode="EDIT")
-            elif not active_kb.lock_shape:
                 for i, point in enumerate(obj.data.points):
-                    active_kb.data[i].co = point.co.copy()
+                    if point.select:
+                        active_kb.data[i].co = basis_kb.data[i].co.copy()
+                bpy.ops.object.mode_set(mode="EDIT")
+            else:
+                for i in range(len(basis_kb.data)):
+                    active_kb.data[i].co = basis_kb.data[i].co.copy()
         else:
             if obj.mode == "EDIT":
-                basis_kb = obj.data.shape_keys.reference_key
                 try:
                     bpy.ops.mesh.blend_from_shape(shape=basis_kb.name, blend=1, add=False)
                 except Exception as e:
                     self.report({"ERROR"}, str(e))
-            elif not active_kb.lock_shape:
-                basis_co_flat = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
-                obj.data.vertices.foreach_get("co", basis_co_flat)
+            else:
+                basis_co_flat = np.empty(len(basis_kb.data) * 3, dtype=np.float32)
+                basis_kb.data.foreach_get("co", basis_co_flat)
                 active_kb.data.foreach_set("co", basis_co_flat)
                 obj.data.update()
-            else:
-                self.report({"ERROR"}, "Active Shape Key is Locked")
 
         self.print_time()
         return {"FINISHED"}
@@ -93,17 +94,19 @@ class OBJECT_OT_mio3sk_reset(Mio3SKOperator):
             return {"CANCELLED"}
         
         key_blocks = obj.data.shape_keys.key_blocks
+        basis_kb = obj.data.shape_keys.reference_key
         selected_names = {ext.name for ext in obj.mio3sk.ext_data if ext.select}
 
         if obj.type == "LATTICE":
+            basis_co = [basis_kb.data[i].co.copy() for i in range(len(basis_kb.data))]
             for kb in key_blocks:
                 if kb.name not in selected_names or kb.lock_shape:
                     continue
-                for i in range(len(obj.data.points)):
-                    kb.data[i].co = obj.data.points[i].co.copy()
+                for i, co in enumerate(basis_co):
+                    kb.data[i].co = co
         else:
-            basis_co_flat = np.empty(len(obj.data.vertices) * 3, dtype=np.float32)
-            obj.data.vertices.foreach_get("co", basis_co_flat)
+            basis_co_flat = np.empty(len(basis_kb.data) * 3, dtype=np.float32)
+            basis_kb.data.foreach_get("co", basis_co_flat)
             for kb in key_blocks:
                 if kb.name not in selected_names or kb.lock_shape:
                     continue
