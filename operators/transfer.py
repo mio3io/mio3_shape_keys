@@ -120,7 +120,7 @@ class OBJECT_OT_mio3sk_shape_transfer(Mio3SKGlobalOperator):
 
         source_active_shape_key_index = source_obj.active_shape_key_index
 
-        target_basis_co = self._read_co(target_obj.data.vertices, target_len)
+        target_basis_co = self._read_co(target_obj.data.shape_keys.reference_key.data, target_len)
         if self.mapping_mode == "SHAPE_POSITION":
             target_tmp_key = target_obj.shape_key_add(name="__TMP__", from_mix=True)
             target_mapping_co = self._read_co(target_tmp_key.data, target_len)
