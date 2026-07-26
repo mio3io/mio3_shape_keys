@@ -1,6 +1,6 @@
 import bpy
 import json
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import IntProperty, StringProperty, EnumProperty
 from ..classes.operator import Mio3SKOperator, Mio3SKGlobalOperator
 from ..utils.ext_data import clear_filter, refresh_data
 from ..utils.utils import has_shape_key, valid_shape_key, is_sync_collection
@@ -339,6 +339,24 @@ class OBJECT_OT_mio3sk_props_conv(Mio3SKGlobalOperator):
 
 #         return {"FINISHED"}
 
+
+class OBJECT_OT_mio3sk_oldname_by_current(Mio3SKGlobalOperator):
+    bl_idname = "object.mio3sk_oldname_by_current"
+    bl_label = "「古い名前」をセット"
+    bl_description = "「古い名前」の項目に現在の名前を入力"
+    bl_options = {"REGISTER", "UNDO"}
+    i: IntProperty(name="Index")
+
+    def execute(self, context):
+        obj = context.active_object
+        key_blocks = obj.data.shape_keys.key_blocks
+        name = key_blocks[self.i].name
+        ext = obj.mio3sk.ext_data.get(name)
+        if ext:
+            ext.old_name = name
+        return {"FINISHED"}
+
+
 classes = [
     OBJECT_OT_mio3sk_refresh_ext_data,
     OBJECT_OT_mio3sk_clear_ext_data,
@@ -347,6 +365,7 @@ classes = [
     OBJECT_OT_mio3sk_keyframe,
     OBJECT_OT_mio3sk_active_key,
     OBJECT_OT_mio3sk_props_conv,
+    OBJECT_OT_mio3sk_oldname_by_current,
 ]
 
 # def add_menu(self, context):

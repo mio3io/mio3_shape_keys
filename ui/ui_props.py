@@ -133,10 +133,14 @@ class MIO3SK_PT_sub_properties(Mio3SKPanel):
             sub.prop(ext, "group_color", text="グループカラー")
             sub.prop(ext, "is_group_hidden", text="グループ一覧で非表示")
 
+        # 開発用
         if prefs.developer:
             col.prop(ext, "name_ja")
-            col.prop(ext, "old_name")
+            sub_row = col.row(align=True)
+            sub_row.prop(ext, "old_name")
+            sub_row.operator("object.mio3sk_oldname_by_current", text="", icon="TRIA_LEFT").i = active_shape_key_index
             col.prop(ext, "old_ratio")
+
 
     def layout_deform(self, box, obj, ext):
         col = box.column()
